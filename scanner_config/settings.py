@@ -147,3 +147,13 @@ SECURE_CONTENT_SECURITY_POLICY = {
     'script-src': ("'self'", "'unsafe-inline'"),
     'style-src': ("'self'", "'unsafe-inline'"),
 }
+
+# CSRF trusted origins
+CSRF_TRUSTED_ORIGINS = [
+    'http://187.127.131.93:3000',
+    'http://localhost:3000',
+    'http://127.0.0.1:3000',
+]
+
+# Also allow Django to accept requests from the VPS IP
+STATIC_ROOT = '/var/www/networkscanner/staticfiles/'
