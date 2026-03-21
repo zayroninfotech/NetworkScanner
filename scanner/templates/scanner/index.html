@@ -1,0 +1,2833 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NetSentinel – Network Security Scanner | Zayron Infotech</title>
+    <link rel="stylesheet" href="{% static 'css/branding.css' %}">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #2c3e50;
+            min-height: 100vh;
+            color: #FFFFFF;
+            display: flex;
+        }
+
+        /* Sidebar Styles */
+        .sidebar {
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: 280px;
+            height: 100vh;
+            background: #2c3e50;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
+            overflow-y: auto;
+            z-index: 1000;
+            animation: slideInLeft 0.4s ease;
+            border-right: 1px solid #34495e;
+        }
+
+        @keyframes slideInLeft {
+            from {
+                transform: translateX(-100%);
+            }
+            to {
+                transform: translateX(0);
+            }
+        }
+
+        .sidebar-header {
+            padding: 25px 20px;
+            background: #2c3e50;
+            color: #FFFFFF;
+            text-align: center;
+            border-bottom: 1px solid #34495e;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .sidebar-header h2 {
+            margin: 0;
+            font-size: 1.3em;
+        }
+
+        .sidebar-header p {
+            margin: 5px 0 0 0;
+            font-size: 0.85em;
+            opacity: 0.9;
+        }
+
+        .sidebar-nav {
+            padding: 20px 0;
+        }
+
+        .sidebar-nav a {
+            display: block;
+            padding: 15px 20px;
+            color: #ecf0f1;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            border-left: 4px solid transparent;
+            position: relative;
+        }
+
+        .sidebar-nav a:hover {
+            background: rgba(212, 165, 116, 0.1);
+            border-left-color: #D4A574;
+            padding-left: 24px;
+            color: #D4A574;
+        }
+
+        .sidebar-nav a.active {
+            background: rgba(212, 165, 116, 0.15);
+            color: #D4A574;
+            border-left-color: #D4A574;
+            font-weight: 600;
+        }
+
+        .sidebar-nav a .icon {
+            margin-right: 12px;
+            font-size: 1.2em;
+        }
+
+
+        /* Sidebar Section Styles - Bootstrap Style */
+        .nav-section {
+            margin-top: 0;
+        }
+
+        .nav-section-header {
+            padding: 12px 20px;
+            font-size: 0.8em;
+            font-weight: 700;
+            color: #D4A574;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            user-select: none;
+            transition: all 0.3s ease;
+            background: rgba(15, 40, 71, 0.05);
+            border-bottom: 1px solid #D4A574;
+            border-left: 3px solid transparent;
+        }
+
+        .nav-section-header:hover {
+            color: #FFFFFF;
+            background: rgba(15, 40, 71, 0.15);
+            border-left-color: #D4A574;
+        }
+
+        .nav-section-header .expand-icon {
+            font-size: 0.85em;
+            transition: transform 0.3s ease;
+            color: #D4A574;
+        }
+
+        .nav-section-header.expanded .expand-icon {
+            transform: rotate(180deg);
+            color: #FFFFFF;
+        }
+
+        .nav-section-items {
+            max-height: 1000px;
+            overflow: visible;
+            transition: max-height 0.3s ease;
+            background: rgba(0, 0, 0, 0.2);
+        }
+
+        .nav-section-items.collapsed {
+            max-height: 0 !important;
+            overflow: hidden !important;
+        }
+
+        .nav-section-items .nav-link {
+            padding-left: 30px !important;
+            font-size: 0.95em;
+            border-left: 3px solid transparent;
+            color: #FFFFFF;
+            transition: all 0.2s ease;
+        }
+
+        .nav-section-items .nav-link:hover {
+            background: rgba(212, 165, 116, 0.1) !important;
+            border-left-color: #D4A574 !important;
+            color: #D4A574 !important;
+            padding-left: 33px !important;
+        }
+
+        .nav-section-items .nav-link.active {
+            background: rgba(212, 165, 116, 0.15) !important;
+            color: #D4A574 !important;
+            font-weight: 600;
+            border-left-color: #D4A574 !important;
+        }
+
+        /* Mobile Menu Toggle */
+        .menu-toggle {
+            display: none;
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 1001;
+            background: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1.5em;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Main Content Area */
+        .main-wrapper {
+            margin-left: 280px;
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            color: white;
+            margin-bottom: 40px;
+            animation: slideDown 0.6s ease;
+            background: #2c3e50;
+            padding: 40px 20px;
+            margin: -20px -20px 40px -20px;
+            border-radius: 8px;
+            border: 1px solid #34495e;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .subtitle {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+
+        .card {
+            background: #FFFFFF;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 10px 40px rgba(15, 40, 71, 0.2);
+            animation: fadeIn 0.6s ease 0.2s both;
+            border-left: 5px solid #D4A574;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .scan-form {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        input[type="text"] {
+            flex: 1;
+            padding: 12px 16px;
+            border: 2px solid #D4A574;
+            border-radius: 8px;
+            font-size: 1em;
+            transition: border-color 0.3s, box-shadow 0.3s;
+        }
+
+        input[type="text"]:focus {
+            outline: none;
+            border-color: #0F2847;
+            box-shadow: 0 0 0 3px rgba(212, 165, 116, 0.2);
+        }
+
+        button {
+            padding: 12px 30px;
+            background: linear-gradient(135deg, #D4A574 0%, #C9945F 100%);
+            color: #0F2847;
+            border: none;
+            border-radius: 8px;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(212, 165, 116, 0.4);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .input-hint {
+            color: #999;
+            font-size: 0.9em;
+            margin-top: 8px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .stat-box {
+            background: linear-gradient(135deg, #0F2847 0%, #1A3A52 100%);
+            color: #FFFFFF;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            border: 2px solid #D4A574;
+        }
+
+        .stat-box .number {
+            font-size: 2em;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .stat-box .label {
+            font-size: 0.9em;
+            opacity: 0.9;
+        }
+
+        .results-section {
+            display: none;
+        }
+
+        .results-section.active {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .risk-badge {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            font-weight: 600;
+            margin-bottom: 20px;
+        }
+
+        .risk-critical {
+            background: #ffebee;
+            color: #c62828;
+        }
+
+        .risk-high {
+            background: #fff3e0;
+            color: #e65100;
+        }
+
+        .risk-medium {
+            background: #fffde7;
+            color: #f57f17;
+        }
+
+        .risk-low {
+            background: #e8f5e9;
+            color: #2e7d32;
+        }
+
+        .target-info {
+            background: #f5f5f5;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border-left: 4px solid #D4A574;
+        }
+
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            margin: 8px 0;
+            font-size: 0.95em;
+        }
+
+        .info-label {
+            font-weight: 600;
+            color: #666;
+        }
+
+        .info-value {
+            color: #333;
+        }
+
+        .ports-section {
+            margin-top: 30px;
+        }
+
+        .ports-section h3 {
+            color: #333;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #D4A574;
+        }
+
+        .port-list {
+            display: grid;
+            gap: 12px;
+        }
+
+        .port-item {
+            display: grid;
+            grid-template-columns: 80px 1fr 120px;
+            gap: 15px;
+            padding: 15px;
+            background: #f9f9f9;
+            border-radius: 8px;
+            border-left: 4px solid #D4A574;
+            align-items: center;
+        }
+
+        .port-number {
+            font-weight: bold;
+            color: #0F2847;
+            font-size: 1.1em;
+        }
+
+        .port-details {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .port-service {
+            font-weight: 600;
+            color: #333;
+        }
+
+        .port-reason {
+            color: #666;
+            font-size: 0.9em;
+        }
+
+        .recommendations {
+            background: #f1f5f9;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 30px;
+            border-left: 4px solid #D4A574;
+        }
+
+        .recommendations h4 {
+            color: #333;
+            margin-bottom: 15px;
+        }
+
+        .recommendations ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .recommendations li {
+            padding: 8px 0;
+            color: #555;
+            line-height: 1.6;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px 20px;
+            color: #666;
+            display: none;
+        }
+
+        .loading.active {
+            display: block;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #D4A574;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .error-message {
+            background: #ffebee;
+            color: #c62828;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border-left: 4px solid #c62828;
+            display: none;
+        }
+
+        .error-message.active {
+            display: block;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .recent-scans {
+            margin-top: 40px;
+        }
+
+        .scan-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+
+        .scan-table thead {
+            background: #f5f5f5;
+        }
+
+        .scan-table th {
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+            color: #333;
+            border-bottom: 2px solid #ddd;
+        }
+
+        .scan-table td {
+            padding: 12px;
+            border-bottom: 1px solid #eee;
+            color: #333;
+        }
+
+        .scan-table tr:hover {
+            background: #f9f9f9;
+        }
+
+        @media (max-width: 768px) {
+            /* Sidebar responsive */
+            .sidebar {
+                width: 280px;
+                transform: translateX(-280px);
+                transition: transform 0.3s ease;
+                box-shadow: 2px 0 20px rgba(0, 0, 0, 0.2);
+            }
+
+            .sidebar.open {
+                transform: translateX(0);
+            }
+
+            .menu-toggle {
+                display: block;
+            }
+
+            .main-wrapper {
+                margin-left: 0;
+            }
+
+            h1 {
+                font-size: 1.8em;
+            }
+
+            header {
+                margin-top: 50px;
+            }
+
+            .scan-form {
+                flex-direction: column;
+            }
+
+            .port-item {
+                grid-template-columns: 1fr;
+            }
+
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 480px) {
+            .sidebar {
+                width: 100%;
+            }
+
+            h1 {
+                font-size: 1.5em;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .scan-table {
+                font-size: 0.9em;
+            }
+
+            .scan-table th,
+            .scan-table td {
+                padding: 8px;
+            }
+        }
+
+        .no-ports {
+            text-align: center;
+            padding: 40px 20px;
+            color: #666;
+        }
+
+        .private-ip-badge {
+            background: #e3f2fd;
+            color: #1976d2;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 0.85em;
+            font-weight: 600;
+        }
+
+        /* Tab Page Styles */
+        .tab-page {
+            animation: fadeIn 0.3s ease;
+        }
+
+        .tab-page.active {
+            display: block;
+        }
+
+        /* Security Issue Cards */
+        .security-issue {
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid;
+            background: #f9f9f9;
+        }
+
+        .security-issue.critical {
+            border-left-color: #c62828;
+            background: #ffebee;
+        }
+
+        .security-issue.high {
+            border-left-color: #e65100;
+            background: #fff3e0;
+        }
+
+        .security-issue.medium {
+            border-left-color: #f57f17;
+            background: #fffde7;
+        }
+
+        .security-issue.low {
+            border-left-color: #2e7d32;
+            background: #e8f5e9;
+        }
+
+        .security-issue.info {
+            border-left-color: #1976d2;
+            background: #e3f2fd;
+        }
+
+        .security-issue-title {
+            font-weight: 600;
+            margin-bottom: 5px;
+            color: #333;
+        }
+
+        .security-issue-description {
+            font-size: 0.95em;
+            color: #555;
+            margin-bottom: 8px;
+        }
+
+        .security-issue-recommendation {
+            font-size: 0.9em;
+            color: #666;
+            font-style: italic;
+            padding-top: 8px;
+            border-top: 1px solid rgba(0,0,0,0.1);
+            margin-top: 8px;
+        }
+
+        .dns-record-item {
+            padding: 8px 12px;
+            background: #f5f5f5;
+            border-radius: 4px;
+            margin-bottom: 6px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            border-left: 3px solid #D4A574;
+        }
+    </style>
+</head>
+<body>
+    <!-- Mobile Menu Toggle -->
+    <button class="menu-toggle" id="menuToggle" onclick="toggleSidebar()">☰</button>
+
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <div class="logo-container">
+                <img src="{% static 'images/zayron-logo.png' %}" alt="Zayron Logo">
+                <div class="company-name">Zayron Infotech</div>
+                <div class="company-tagline">Advanced Security Solutions</div>
+            </div>
+            <h2 style="margin-top: 15px; font-size: 1.2em;">🛡️ NetSentinel</h2>
+            <p>Network Security Scanner</p>
+        </div>
+
+        <nav class="sidebar-nav">
+            <!-- Dashboard -->
+            <a href="#dashboard" class="nav-link active" onclick="switchTab('dashboard', event)">
+                <span class="icon">📊</span>
+                <span>Dashboard</span>
+            </a>
+
+            <!-- Network Analysis Section -->
+            <div class="nav-section">
+                <div class="nav-section-header expanded" onclick="toggleSection(this)">
+                    <span>🔍 Network Analysis</span>
+                    <span class="expand-icon">▼</span>
+                </div>
+                <div class="nav-section-items">
+                    <a href="#port-scan" class="nav-link" onclick="switchTab('port-scan', event)">
+                        <span class="icon">🔍</span>
+                        <span>Port Scan</span>
+                    </a>
+                    <a href="#ping-scan" class="nav-link" onclick="switchTab('ping-scan', event)">
+                        <span class="icon">📡</span>
+                        <span>Ping Scanner</span>
+                    </a>
+                    <a href="#traceroute-scan" class="nav-link" onclick="switchTab('traceroute-scan', event)">
+                        <span class="icon">📍</span>
+                        <span>Traceroute</span>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Web & Domain Section -->
+            <div class="nav-section">
+                <div class="nav-section-header expanded" onclick="toggleSection(this)">
+                    <span>🌐 Web & Domain</span>
+                    <span class="expand-icon">▼</span>
+                </div>
+                <div class="nav-section-items">
+                    <a href="#webpage-scan" class="nav-link" onclick="switchTab('webpage-scan', event)">
+                        <span class="icon">📄</span>
+                        <span>Webpage Scanner</span>
+                    </a>
+                    <a href="#url-scan" class="nav-link" onclick="switchTab('url-scan', event)">
+                        <span class="icon">🌐</span>
+                        <span>URL Scanner</span>
+                    </a>
+                    <a href="#ssl-scan" class="nav-link" onclick="switchTab('ssl-scan', event)">
+                        <span class="icon">🔒</span>
+                        <span>SSL Certificate</span>
+                    </a>
+                    <a href="#whois-scan" class="nav-link" onclick="switchTab('whois-scan', event)">
+                        <span class="icon">📋</span>
+                        <span>Whois Lookup</span>
+                    </a>
+                    <a href="#headers-scan" class="nav-link" onclick="switchTab('headers-scan', event)">
+                        <span class="icon">🔐</span>
+                        <span>HTTP Headers</span>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Advanced Section -->
+            <div class="nav-section">
+                <div class="nav-section-header expanded" onclick="toggleSection(this)">
+                    <span>⚙️ Advanced</span>
+                    <span class="expand-icon">▼</span>
+                </div>
+                <div class="nav-section-items">
+                    <a href="#nmap-scan" class="nav-link" onclick="switchTab('nmap-scan', event)">
+                        <span class="icon">🖥️</span>
+                        <span>Nmap Scan</span>
+                    </a>
+                </div>
+            </div>
+        </nav>
+    </aside>
+
+    <!-- Main Content Area -->
+    <div class="main-wrapper">
+        <div class="container">
+            <header>
+                <h1>🛡️ NetSentinel</h1>
+                <p class="subtitle">Network Security Scanner & Analyzer</p>
+            </header>
+
+            <!-- Dashboard Page -->
+            <div id="dashboard-page" class="tab-page active" style="display: block;">
+                <div class="main-content">
+                    <!-- Quick Links -->
+                    <div class="card" style="margin-top: 30px;">
+                        <h2 style="color: #000; font-size: 1.5em; margin-bottom: 10px;">🚀 Quick Start</h2>
+                        <p style="color: #666; margin-bottom: 20px;">Popular scanning tools</p>
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
+                            <a onclick="switchTab('port-scan', event)" style="padding: 15px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border-radius: 8px; text-decoration: none; cursor: pointer; transition: all 0.3s; display: flex; align-items: center; gap: 10px; font-weight: 600;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'">
+                                <span style="font-size: 1.5em;">🔍</span>
+                                <span>Port Scan</span>
+                            </a>
+                            <a onclick="switchTab('ping-scan', event)" style="padding: 15px; background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white; border-radius: 8px; text-decoration: none; cursor: pointer; transition: all 0.3s; display: flex; align-items: center; gap: 10px; font-weight: 600;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'">
+                                <span style="font-size: 1.5em;">📡</span>
+                                <span>Ping Check</span>
+                            </a>
+                            <a onclick="switchTab('ssl-scan', event)" style="padding: 15px; background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); color: white; border-radius: 8px; text-decoration: none; cursor: pointer; transition: all 0.3s; display: flex; align-items: center; gap: 10px; font-weight: 600;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'">
+                                <span style="font-size: 1.5em;">🔒</span>
+                                <span>SSL Check</span>
+                            </a>
+                            <a onclick="switchTab('whois-scan', event)" style="padding: 15px; background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); color: white; border-radius: 8px; text-decoration: none; cursor: pointer; transition: all 0.3s; display: flex; align-items: center; gap: 10px; font-weight: 600;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'">
+                                <span style="font-size: 1.5em;">📋</span>
+                                <span>Whois</span>
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Network Analysis Tools -->
+                    <div class="card" style="margin-top: 30px;">
+                        <h2 style="color: #000; font-size: 1.5em; margin-bottom: 20px;">🌐 Network Analysis</h2>
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
+                            <a onclick="switchTab('port-scan', event)" style="padding: 15px; background: #f8f9fa; border: 1px solid #ddd; border-radius: 8px; text-decoration: none; cursor: pointer; transition: all 0.3s;" onmouseover="this.style.background='#e8ecf1'; this.style.transform='translateY(-2px)'" onmouseout="this.style.background='#f8f9fa'; this.style.transform='translateY(0)'">
+                                <h4 style="color: #333; margin: 0 0 5px 0; display: flex; align-items: center; gap: 8px;">🔍 Port Scan</h4>
+                                <p style="color: #666; font-size: 0.85em; margin: 0;">Scan 15 common ports and identify open services</p>
+                            </a>
+                            <a onclick="switchTab('ping-scan', event)" style="padding: 15px; background: #f8f9fa; border: 1px solid #ddd; border-radius: 8px; text-decoration: none; cursor: pointer; transition: all 0.3s;" onmouseover="this.style.background='#e8ecf1'; this.style.transform='translateY(-2px)'" onmouseout="this.style.background='#f8f9fa'; this.style.transform='translateY(0)'">
+                                <h4 style="color: #333; margin: 0 0 5px 0; display: flex; align-items: center; gap: 8px;">📡 Ping Scanner</h4>
+                                <p style="color: #666; font-size: 0.85em; margin: 0;">Check host reachability and response times</p>
+                            </a>
+                            <a onclick="switchTab('traceroute-scan', event)" style="padding: 15px; background: #f8f9fa; border: 1px solid #ddd; border-radius: 8px; text-decoration: none; cursor: pointer; transition: all 0.3s;" onmouseover="this.style.background='#e8ecf1'; this.style.transform='translateY(-2px)'" onmouseout="this.style.background='#f8f9fa'; this.style.transform='translateY(0)'">
+                                <h4 style="color: #333; margin: 0 0 5px 0; display: flex; align-items: center; gap: 8px;">📍 Traceroute</h4>
+                                <p style="color: #666; font-size: 0.85em; margin: 0;">Visualize network path and hop latency</p>
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Web & Domain Tools -->
+                    <div class="card" style="margin-top: 30px;">
+                        <h2 style="color: #000; font-size: 1.5em; margin-bottom: 20px;">🌍 Web & Domain</h2>
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
+                            <a onclick="switchTab('webpage-scan', event)" style="padding: 15px; background: #f8f9fa; border: 1px solid #ddd; border-radius: 8px; text-decoration: none; cursor: pointer; transition: all 0.3s;" onmouseover="this.style.background='#e8ecf1'; this.style.transform='translateY(-2px)'" onmouseout="this.style.background='#f8f9fa'; this.style.transform='translateY(0)'">
+                                <h4 style="color: #333; margin: 0 0 5px 0; display: flex; align-items: center; gap: 8px;">📄 Webpage Scanner</h4>
+                                <p style="color: #666; font-size: 0.85em; margin: 0;">Analyze website content and technology</p>
+                            </a>
+                            <a onclick="switchTab('url-scan', event)" style="padding: 15px; background: #f8f9fa; border: 1px solid #ddd; border-radius: 8px; text-decoration: none; cursor: pointer; transition: all 0.3s;" onmouseover="this.style.background='#e8ecf1'; this.style.transform='translateY(-2px)'" onmouseout="this.style.background='#f8f9fa'; this.style.transform='translateY(0)'">
+                                <h4 style="color: #333; margin: 0 0 5px 0; display: flex; align-items: center; gap: 8px;">🔗 URL Scanner</h4>
+                                <p style="color: #666; font-size: 0.85em; margin: 0;">Scan URLs for security threats and malware</p>
+                            </a>
+                            <a onclick="switchTab('ssl-scan', event)" style="padding: 15px; background: #f8f9fa; border: 1px solid #ddd; border-radius: 8px; text-decoration: none; cursor: pointer; transition: all 0.3s;" onmouseover="this.style.background='#e8ecf1'; this.style.transform='translateY(-2px)'" onmouseout="this.style.background='#f8f9fa'; this.style.transform='translateY(0)'">
+                                <h4 style="color: #333; margin: 0 0 5px 0; display: flex; align-items: center; gap: 8px;">🔒 SSL Certificate</h4>
+                                <p style="color: #666; font-size: 0.85em; margin: 0;">Check certificate validity and security issues</p>
+                            </a>
+                            <a onclick="switchTab('whois-scan', event)" style="padding: 15px; background: #f8f9fa; border: 1px solid #ddd; border-radius: 8px; text-decoration: none; cursor: pointer; transition: all 0.3s;" onmouseover="this.style.background='#e8ecf1'; this.style.transform='translateY(-2px)'" onmouseout="this.style.background='#f8f9fa'; this.style.transform='translateY(0)'">
+                                <h4 style="color: #333; margin: 0 0 5px 0; display: flex; align-items: center; gap: 8px;">📋 Whois Lookup</h4>
+                                <p style="color: #666; font-size: 0.85em; margin: 0;">Get domain registration and ownership details</p>
+                            </a>
+                            <a onclick="switchTab('http-headers', event)" style="padding: 15px; background: #f8f9fa; border: 1px solid #ddd; border-radius: 8px; text-decoration: none; cursor: pointer; transition: all 0.3s;" onmouseover="this.style.background='#e8ecf1'; this.style.transform='translateY(-2px)'" onmouseout="this.style.background='#f8f9fa'; this.style.transform='translateY(0)'">
+                                <h4 style="color: #333; margin: 0 0 5px 0; display: flex; align-items: center; gap: 8px;">📨 HTTP Headers</h4>
+                                <p style="color: #666; font-size: 0.85em; margin: 0;">Analyze HTTP response headers and security</p>
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Advanced Tools -->
+                    <div class="card" style="margin-top: 30px;">
+                        <h2 style="color: #000; font-size: 1.5em; margin-bottom: 20px;">⚙️ Advanced Tools</h2>
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
+                            <a onclick="switchTab('nmap-scan', event)" style="padding: 15px; background: #f8f9fa; border: 1px solid #ddd; border-radius: 8px; text-decoration: none; cursor: pointer; transition: all 0.3s;" onmouseover="this.style.background='#e8ecf1'; this.style.transform='translateY(-2px)'" onmouseout="this.style.background='#f8f9fa'; this.style.transform='translateY(0)'">
+                                <h4 style="color: #333; margin: 0 0 5px 0; display: flex; align-items: center; gap: 8px;">🖥️ Nmap Scan</h4>
+                                <p style="color: #666; font-size: 0.85em; margin: 0;">Advanced network mapping and vulnerability discovery</p>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div> <!-- End dashboard-page -->
+
+            <!-- Port Scan Page -->
+            <div id="port-scan-page" class="tab-page" style="display: none;">
+        <div class="main-content">
+            <!-- Scan Form -->
+            <div class="card">
+                <h2>Quick Scan</h2>
+                <div class="scan-form">
+                    <input type="text" id="targetInput" placeholder="Enter IP address or domain (e.g., 192.168.1.1 or example.com)" autocomplete="off">
+                    <button onclick="performScan()">🔍 Scan</button>
+                </div>
+                <div class="input-hint">⚠️ Only scan systems you own or have explicit permission to test</div>
+
+                <!-- Error Message -->
+                <div id="errorMessage" class="error-message"></div>
+
+                <!-- Loading State -->
+                <div id="loading" class="loading">
+                    <div class="spinner"></div>
+                    <p>Scanning target... this may take up to 30 seconds</p>
+                </div>
+
+                <!-- Results Section -->
+                <div id="results" class="results-section">
+                    <!-- Target Info -->
+                    <div class="target-info">
+                        <div class="info-row">
+                            <span class="info-label">Target:</span>
+                            <span class="info-value" id="resultTarget"></span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">IP Address:</span>
+                            <span class="info-value" id="resultIP"></span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Type:</span>
+                            <span class="info-value">
+                                <span id="ipType"></span>
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- Risk Assessment Badge -->
+                    <div id="riskBadge"></div>
+
+                    <!-- DNS Info -->
+                    <div id="dnsSection" style="display: none;">
+                        <div class="target-info">
+                            <div class="info-row">
+                                <span class="info-label">DNS Resolution:</span>
+                                <span class="info-value" id="dnsResolved"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Ports Section -->
+                    <div class="ports-section">
+                        <h3>Open Ports & Services</h3>
+                        <div id="portsList" class="port-list"></div>
+                    </div>
+
+                    <!-- Recommendations -->
+                    <div id="recommendationsSection" class="recommendations">
+                        <h4>Security Recommendations</h4>
+                        <ul id="recommendationsList"></ul>
+                    </div>
+
+                    <!-- Download PDF Button -->
+                    <div style="margin-top: 16px; text-align: right;">
+                        <button onclick="downloadScanResultPDF()" style="background: linear-gradient(135deg, #D4A574 0%, #0F2847 100%); padding: 10px 22px; font-size: 0.95em;">
+                            📄 Download PDF Report
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Statistics -->
+            <div class="card">
+                <h2>Dashboard Statistics</h2>
+                <div class="stats-grid" id="statsGrid">
+                    {% for scan in recent_scans %}
+                        <!-- Stats will be loaded via JS -->
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Recent Scans -->
+            <div class="card recent-scans">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                    <h2 style="margin: 0;">Recent Scans</h2>
+                    <button onclick="downloadHistoryPDF()" style="padding: 8px 18px; font-size: 0.85em; background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);">📥 Download PDF</button>
+                </div>
+                <table class="scan-table">
+                    <thead>
+                        <tr>
+                            <th>Target</th>
+                            <th>IP Address</th>
+                            <th>Risk Level</th>
+                            <th>Open Ports</th>
+                            <th>Date</th>
+                        </tr>
+                    </thead>
+                    <tbody id="scansTableBody">
+                        {% for scan in recent_scans %}
+                        <tr>
+                            <td>{{ scan.target }}</td>
+                            <td>{{ scan.target_ip }}</td>
+                            <td>
+                                <span class="risk-badge risk-{{ scan.overall_risk|lower }}">
+                                    {{ scan.overall_risk }}
+                                </span>
+                            </td>
+                            <td>{{ scan.open_ports|length }}</td>
+                            <td>{{ scan.created_at|date:"M d, Y H:i" }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="5" style="text-align: center; color: #999; padding: 20px;">No scans performed yet</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        </div>
+            </div> <!-- End port-scan-page -->
+
+            <!-- Nmap Scan Page -->
+            <div id="nmap-scan-page" class="tab-page" style="display: none;">
+                <div class="card">
+                    <h2>🖥️ Nmap Scanner</h2>
+                    <div class="scan-form">
+                        <input type="text" id="nmapTargetInput" placeholder="Enter IP or domain (e.g., 192.168.1.1 or example.com)" autocomplete="off">
+                        <select id="nmapScanType" style="padding: 12px 16px; border: 2px solid #e1e5e9; border-radius: 8px; font-size: 14px; background: white; color: #333; cursor: pointer;">
+                            <option value="quick">Quick Scan (-F)</option>
+                            <option value="service">Service Detection (-sV)</option>
+                            <option value="os">OS Detection (-O)</option>
+                            <option value="intense">Intense Scan (-A)</option>
+                        </select>
+                        <button onclick="performNmapScan()">🖥️ Run Nmap</button>
+                    </div>
+                    <div class="input-hint">⚠️ Only scan systems you own or have explicit written permission to test</div>
+
+                    <!-- Error Message -->
+                    <div id="nmapErrorMessage" class="error-message"></div>
+
+                    <!-- Loading State -->
+                    <div id="nmapLoading" class="loading">
+                        <div class="spinner"></div>
+                        <p>Running Nmap scan... this may take a moment</p>
+                    </div>
+
+                    <!-- Results Section -->
+                    <div id="nmapResults" class="results-section">
+                        <div class="target-info">
+                            <div class="info-row">
+                                <span class="info-label">Target:</span>
+                                <span class="info-value" id="nmapResultTarget"></span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">Scan Type:</span>
+                                <span class="info-value" id="nmapResultType"></span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">Duration:</span>
+                                <span class="info-value" id="nmapResultDuration"></span>
+                            </div>
+                        </div>
+                        <div style="margin-top: 20px;">
+                            <h3 style="color: #333; margin-bottom: 12px; padding-bottom: 10px; border-bottom: 2px solid #D4A574;">Scan Output</h3>
+                            <pre id="nmapOutput" style="background: #1a1a2e; color: #00ff88; padding: 20px; border-radius: 8px; font-family: 'Courier New', monospace; font-size: 13px; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word; max-height: 500px; overflow-y: auto;"></pre>
+                        </div>
+                    </div>
+                </div>
+            </div> <!-- End nmap-scan-page -->
+
+            <!-- URL Scanner Page -->
+            <div id="url-scan-page" class="tab-page" style="display: none;">
+                <div class="card">
+                    <h2>URL/Domain Scanner</h2>
+                    <div class="scan-form">
+                        <input type="text" id="urlInput" placeholder="Enter URL or domain (e.g., example.com or https://google.com)" autocomplete="off">
+                        <button onclick="performURLScan()">🌐 Scan URL</button>
+                    </div>
+                    <div class="input-hint">⚠️ Only scan domains you own or have explicit permission to test</div>
+
+                    <!-- Error Message -->
+                    <div id="urlErrorMessage" class="error-message"></div>
+
+                    <!-- Loading State -->
+                    <div id="urlLoading" class="loading">
+                        <div class="spinner"></div>
+                        <p>Scanning URL... please wait</p>
+                    </div>
+
+                    <!-- Results Section -->
+                    <div id="urlResults" class="results-section">
+                        <!-- Domain Info -->
+                        <div class="target-info">
+                            <div class="info-row">
+                                <span class="info-label">Domain:</span>
+                                <span class="info-value" id="resultDomain"></span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">Primary IP:</span>
+                                <span class="info-value" id="resultDomainIP"></span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">Reverse DNS:</span>
+                                <span class="info-value" id="resultReverseDNS"></span>
+                            </div>
+                        </div>
+
+                        <!-- DNS Records Section -->
+                        <div id="dnsRecordsSection" style="margin-top: 20px;">
+                            <h3 style="color: #333; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 2px solid #D4A574;">DNS Records</h3>
+
+                            <!-- A Records -->
+                            <div id="aRecordsDiv" style="margin-bottom: 15px;">
+                                <strong>🔹 A Records (IPv4):</strong>
+                                <div id="aRecords" style="margin-top: 8px; color: #666;"></div>
+                            </div>
+
+                            <!-- AAAA Records -->
+                            <div id="aaaaRecordsDiv" style="margin-bottom: 15px; display: none;">
+                                <strong>🔹 AAAA Records (IPv6):</strong>
+                                <div id="aaaaRecords" style="margin-top: 8px; color: #666;"></div>
+                            </div>
+
+                            <!-- MX Records -->
+                            <div id="mxRecordsDiv" style="margin-bottom: 15px; display: none;">
+                                <strong>📧 MX Records (Mail Servers):</strong>
+                                <div id="mxRecords" style="margin-top: 8px; color: #666;"></div>
+                            </div>
+
+                            <!-- NS Records -->
+                            <div id="nsRecordsDiv" style="margin-bottom: 15px; display: none;">
+                                <strong>🔗 NS Records (Nameservers):</strong>
+                                <div id="nsRecords" style="margin-top: 8px; color: #666;"></div>
+                            </div>
+
+                            <!-- TXT Records -->
+                            <div id="txtRecordsDiv" style="margin-bottom: 15px; display: none;">
+                                <strong>📝 TXT Records:</strong>
+                                <div id="txtRecords" style="margin-top: 8px; color: #666; font-size: 0.9em;"></div>
+                            </div>
+
+                            <!-- CNAME Record -->
+                            <div id="cnameRecordDiv" style="margin-bottom: 15px; display: none;">
+                                <strong>🔄 CNAME Record:</strong>
+                                <div id="cnameRecord" style="margin-top: 8px; color: #666;"></div>
+                            </div>
+                        </div>
+
+                        <!-- Security Issues -->
+                        <div id="securityIssuesSection" style="margin-top: 30px;">
+                            <h3 style="color: #333; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 2px solid #D4A574;">Security Analysis</h3>
+                            <div id="securityIssuesList" style="display: grid; gap: 12px;"></div>
+                        </div>
+                    </div>
+                </div>
+            </div> <!-- End url-scan-page -->
+        <!-- HTTP Headers Analyzer Page -->
+        <div id="headers-scan-page" class="tab-page" style="display: none;">
+            <div class="card">
+                <h2>🔐 HTTP Headers Analyzer</h2>
+                <div class="scan-form">
+                    <input type="text" id="headersInput" placeholder="Enter URL or domain (e.g., example.com or https://example.com)" autocomplete="off">
+                    <button onclick="performHeadersScan()">🔐 Analyze</button>
+                </div>
+                <div class="input-hint">Checks for security headers: HSTS, CSP, X-Frame-Options, and more</div>
+
+                <div id="headersErrorMessage" class="error-message"></div>
+
+                <div id="headersLoading" class="loading">
+                    <div class="spinner"></div>
+                    <p>Fetching and analyzing headers...</p>
+                </div>
+
+                <div id="headersResults" class="results-section">
+                    <!-- Summary Bar -->
+                    <div class="target-info" style="margin-bottom: 20px;">
+                        <div class="info-row">
+                            <span class="info-label">URL:</span>
+                            <span class="info-value" id="headersResultURL"></span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Status Code:</span>
+                            <span class="info-value" id="headersStatusCode"></span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Total Headers:</span>
+                            <span class="info-value" id="headersTotalCount"></span>
+                        </div>
+                    </div>
+
+                    <!-- Grade Badge -->
+                    <div id="headersGrade" style="margin-bottom: 20px;"></div>
+
+                    <!-- Server Info Headers -->
+                    <div id="headersInfoSection" style="display:none; margin-bottom: 20px;">
+                        <h3 style="color: #333; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 2px solid #D4A574;">⚠️ Info Disclosure Headers</h3>
+                        <div id="headersInfoList" style="display: grid; gap: 8px;"></div>
+                    </div>
+
+                    <!-- Missing Headers -->
+                    <div style="margin-bottom: 20px;">
+                        <h3 style="color: #333; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 2px solid #e53e3e;">❌ Missing Security Headers</h3>
+                        <div id="headersMissingList" style="display: grid; gap: 10px;"></div>
+                    </div>
+
+                    <!-- Present Headers -->
+                    <div>
+                        <h3 style="color: #333; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 2px solid #38a169;">✅ Present Security Headers</h3>
+                        <div id="headersPresentList" style="display: grid; gap: 10px;"></div>
+                    </div>
+
+                    <!-- Download PDF Button -->
+                    <div style="margin-top: 20px; text-align: right;">
+                        <button onclick="downloadHeadersPDF()" style="background: linear-gradient(135deg, #D4A574 0%, #0F2847 100%); padding: 10px 22px; font-size: 0.95em;">
+                            📄 Download PDF Report
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div> <!-- End headers-scan-page -->
+
+        <!-- Ping Scan Page -->
+        <div id="ping-scan-page" class="tab-page" style="display: none;">
+            <div class="main-content">
+                <div class="card">
+                    <h2>📡 Ping Scanner</h2>
+                    <p style="color: #666; margin-bottom: 15px;">Check if a host is reachable and measure response time</p>
+                    <div class="scan-form">
+                        <input type="text" id="pingInput" placeholder="Enter IP address or domain (e.g., 8.8.8.8 or google.com)" autocomplete="off">
+                        <button onclick="performPing()">📡 Ping</button>
+                    </div>
+                    <div class="input-hint">⚠️ Only ping systems you own or have explicit permission to test</div>
+
+                    <div id="pingLoading" class="loading">
+                        <div class="spinner"></div>
+                        <p>Pinging target...</p>
+                    </div>
+
+                    <div id="pingError" class="error-message"></div>
+
+                    <div id="pingResults" class="results-section" style="display: none;">
+                        <div id="pingResultsContent"></div>
+                    </div>
+                </div>
+            </div>
+        </div> <!-- End ping-scan-page -->
+
+        <!-- Traceroute Page -->
+        <div id="traceroute-scan-page" class="tab-page" style="display: none;">
+            <div class="main-content">
+                <div class="card">
+                    <h2>📍 Traceroute</h2>
+                    <p style="color: #666; margin-bottom: 15px;">Show the network path to a target with hop details and latency</p>
+                    <div class="scan-form">
+                        <input type="text" id="traceInput" placeholder="Enter IP address or domain (e.g., 8.8.8.8 or example.com)" autocomplete="off">
+                        <button onclick="performTraceroute()">📍 Trace</button>
+                    </div>
+                    <div class="input-hint">⚠️ Only traceroute systems you own or have explicit permission to test</div>
+
+                    <div id="traceLoading" class="loading">
+                        <div class="spinner"></div>
+                        <p>Running traceroute...</p>
+                    </div>
+
+                    <div id="traceError" class="error-message"></div>
+
+                    <div id="traceResults" class="results-section" style="display: none;">
+                        <div id="traceResultsContent"></div>
+                    </div>
+                </div>
+            </div>
+        </div> <!-- End traceroute-scan-page -->
+
+        <!-- SSL Certificate Page -->
+        <div id="ssl-scan-page" class="tab-page" style="display: none;">
+            <div class="main-content">
+                <div class="card">
+                    <h2>🔒 SSL Certificate Analysis</h2>
+                    <p style="color: #666; margin-bottom: 15px;">Analyze SSL/TLS certificate details and validity</p>
+                    <div class="scan-form">
+                        <input type="text" id="sslInput" placeholder="Enter domain (e.g., google.com)" autocomplete="off" style="flex: 1;">
+                        <input type="number" id="sslPort" placeholder="Port" value="443" style="width: 100px;" min="1" max="65535">
+                        <button onclick="performSSL()" style="width: 120px;">🔒 Scan</button>
+                    </div>
+                    <div class="input-hint">⚠️ Only scan certificates from systems you own or have explicit permission to test</div>
+
+                    <div id="sslLoading" class="loading">
+                        <div class="spinner"></div>
+                        <p>Scanning certificate...</p>
+                    </div>
+
+                    <div id="sslError" class="error-message"></div>
+
+                    <div id="sslResults" class="results-section" style="display: none;">
+                        <div id="sslResultsContent"></div>
+                    </div>
+                </div>
+            </div>
+        </div> <!-- End ssl-scan-page -->
+
+        <!-- Whois Lookup Page -->
+        <div id="whois-scan-page" class="tab-page" style="display: none;">
+            <div class="main-content">
+                <div class="card">
+                    <h2>📋 Whois Lookup</h2>
+                    <p style="color: #666; margin-bottom: 15px;">Retrieve domain registration information</p>
+                    <div class="scan-form">
+                        <input type="text" id="whoisInput" placeholder="Enter domain name (e.g., example.com)" autocomplete="off">
+                        <button onclick="performWhois()">📋 Lookup</button>
+                    </div>
+                    <div class="input-hint">ℹ️ Public domain registration information</div>
+
+                    <div id="whoisLoading" class="loading">
+                        <div class="spinner"></div>
+                        <p>Looking up domain information...</p>
+                    </div>
+
+                    <div id="whoisError" class="error-message"></div>
+
+                    <div id="whoisResults" class="results-section" style="display: none;">
+                        <div id="whoisResultsContent"></div>
+                    </div>
+                </div>
+            </div>
+        </div> <!-- End whois-scan-page -->
+
+        <!-- Webpage Scanner Page -->
+        <div id="webpage-scan-page" class="tab-page" style="display: none;">
+            <div class="main-content">
+                <div class="card">
+                    <h2>📄 Webpage Scanner</h2>
+                    <p style="color: #666; margin-bottom: 15px;">Analyze webpage content, links, forms, and security</p>
+                    <div class="scan-form">
+                        <input type="text" id="webpageInput" placeholder="Enter URL (e.g., https://example.com)" autocomplete="off">
+                        <button onclick="performWebpage()">📄 Scan</button>
+                    </div>
+                    <div class="input-hint">⚠️ Only scan websites you own or have explicit permission to analyze</div>
+
+                    <div id="webpageLoading" class="loading">
+                        <div class="spinner"></div>
+                        <p>Scanning webpage...</p>
+                    </div>
+
+                    <div id="webpageError" class="error-message"></div>
+
+                    <div id="webpageResults" class="results-section" style="display: none;">
+                        <div id="webpageResultsContent"></div>
+                    </div>
+                </div>
+            </div>
+        </div> <!-- End webpage-scan-page -->
+
+        </div>
+    </div>
+    </div>
+
+    <script>
+        const CSRF_TOKEN = '{{ csrf_token }}';
+
+        // Load Dashboard Stats on page load
+        window.addEventListener('load', function() {
+            loadDashboardStats();
+            initializeSections();
+        });
+
+        // Initialize sidebar sections
+        // Initialize sidebar sections
+        function initializeSections() {
+            const sections = document.querySelectorAll('.nav-section');
+
+            sections.forEach((section, idx) => {
+                const header = section.querySelector('.nav-section-header');
+                const items = section.querySelector('.nav-section-items');
+
+                if (header && items) {
+                    // All sections start EXPANDED
+                    header.classList.add('expanded');
+                    items.classList.remove('collapsed');
+                    items.style.maxHeight = '1000px';
+                    items.style.overflow = 'visible';
+
+                    // Add DIRECT click handler
+                    header.style.cursor = 'pointer';
+                    header.addEventListener('click', function(event) {
+                        event.preventDefault();
+                        event.stopPropagation();
+
+                        const isExpanded = this.classList.contains('expanded');
+                        const nextItems = this.nextElementSibling;
+
+                        if (isExpanded) {
+                            // Collapse
+                            this.classList.remove('expanded');
+                            nextItems.classList.add('collapsed');
+                            nextItems.style.maxHeight = '0px';
+                            nextItems.style.overflow = 'hidden';
+                        } else {
+                            // Expand
+                            this.classList.add('expanded');
+                            nextItems.classList.remove('collapsed');
+                            nextItems.style.maxHeight = '1000px';
+                            nextItems.style.overflow = 'visible';
+                        }
+                    });
+                }
+            });
+        }
+
+        // Toggle sidebar sections (backup function)
+        function toggleSection(headerElement) {
+            if (event) {
+                event.preventDefault();
+                event.stopPropagation();
+            }
+
+            const itemsContainer = headerElement.nextElementSibling;
+            if (!itemsContainer) return;
+
+            const isExpanded = headerElement.classList.contains('expanded');
+
+            if (isExpanded) {
+                headerElement.classList.remove('expanded');
+                itemsContainer.classList.add('collapsed');
+                itemsContainer.style.maxHeight = '0px';
+            } else {
+                headerElement.classList.add('expanded');
+                itemsContainer.classList.remove('collapsed');
+                itemsContainer.style.maxHeight = '1000px';
+            }
+        }
+
+        function loadDashboardStats() {
+            fetch('{% url "scanner:api_stats" %}')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success && data.stats) {
+                        const stats = data.stats;
+                        document.getElementById('totalScansCount').textContent = stats.total_scans;
+                        document.getElementById('criticalCount').textContent = stats.critical_risk;
+                        document.getElementById('highCount').textContent = stats.high_risk;
+                        document.getElementById('mediumCount').textContent = stats.medium_risk;
+                        document.getElementById('lowCount').textContent = stats.low_risk;
+                    }
+                })
+                .catch(error => console.log('Stats load error:', error));
+        }
+
+        function performScan() {
+            const target = document.getElementById('targetInput').value.trim();
+
+            if (!target) {
+                showError('Please enter an IP address or domain');
+                return;
+            }
+
+            // Show loading state
+            document.getElementById('loading').classList.add('active');
+            document.getElementById('results').classList.remove('active');
+            document.getElementById('errorMessage').classList.remove('active');
+
+            fetch('{% url "scanner:api_scan" %}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': CSRF_TOKEN
+                },
+                body: JSON.stringify({ target: target })
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('loading').classList.remove('active');
+
+                if (data.success) {
+                    displayResults(data.data);
+                } else {
+                    showError(data.error || 'Scan failed');
+                }
+            })
+            .catch(error => {
+                document.getElementById('loading').classList.remove('active');
+                showError('Network error: ' + error.message);
+            });
+        }
+
+        let lastScanResult = null;
+
+        function displayResults(result) {
+            lastScanResult = result;
+            const assessment = result.assessment;
+            const scanInfo = result.scan_info;
+
+            // Update target info
+            document.getElementById('resultTarget').textContent = result.target;
+            document.getElementById('resultIP').textContent = scanInfo.target;
+
+            // IP Type
+            const ipType = result.is_private ? 'Private (Internal)' : 'Public (External)';
+            document.getElementById('ipType').innerHTML =
+                result.is_private ? '<span class="private-ip-badge">🏠 ' + ipType + '</span>' : ipType;
+
+            // Risk badge
+            const riskClass = 'risk-' + assessment.overall_risk.toLowerCase();
+            document.getElementById('riskBadge').innerHTML =
+                '<span class="risk-badge ' + riskClass + '">' +
+                assessment.overall_risk + ' RISK' +
+                '</span>';
+
+            // DNS info
+            if (result.dns_info && result.dns_info.success) {
+                document.getElementById('dnsSection').style.display = 'block';
+                document.getElementById('dnsResolved').textContent = result.dns_info.ips.join(', ');
+            }
+
+            // Ports
+            const portsList = document.getElementById('portsList');
+            if (scanInfo.ports.length === 0) {
+                portsList.innerHTML = '<div class="no-ports">✅ No common ports are open. Good security posture!</div>';
+            } else {
+                portsList.innerHTML = scanInfo.ports.map(port => `
+                    <div class="port-item">
+                        <div class="port-number">${port.port}</div>
+                        <div class="port-details">
+                            <div class="port-service">${port.service}</div>
+                            <div class="port-reason">${port.reason}</div>
+                        </div>
+                        <span class="risk-badge risk-${port.risk_level.toLowerCase()}">
+                            ${port.risk_level}
+                        </span>
+                    </div>
+                `).join('');
+            }
+
+            // Recommendations
+            const recommendations = document.getElementById('recommendationsList');
+            recommendations.innerHTML = assessment.recommendations.map(rec =>
+                `<li>${rec}</li>`
+            ).join('');
+
+            // Show results
+            document.getElementById('results').classList.add('active');
+
+            // Refresh statistics and recent scans
+            setTimeout(() => {
+                loadStats();
+                loadRecentScans();
+            }, 500);
+        }
+
+        function showError(message) {
+            const errorEl = document.getElementById('errorMessage');
+            errorEl.textContent = '❌ ' + message;
+            errorEl.classList.add('active');
+        }
+
+        // Allow Enter key to submit
+        document.getElementById('targetInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') performScan();
+        });
+
+        // Load stats and recent scans on page load
+        window.addEventListener('load', function() {
+            loadStats();
+            loadRecentScans();
+        });
+
+        function loadStats() {
+            fetch('{% url "scanner:api_stats" %}')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        const stats = data.stats;
+                        document.getElementById('statsGrid').innerHTML = `
+                            <div class="stat-box">
+                                <div class="number">${stats.total_scans}</div>
+                                <div class="label">Total Scans</div>
+                            </div>
+                            <div class="stat-box">
+                                <div class="number" style="color: #ff6b6b;">${stats.critical_risk}</div>
+                                <div class="label">Critical</div>
+                            </div>
+                            <div class="stat-box">
+                                <div class="number" style="color: #ffa94d;">${stats.high_risk}</div>
+                                <div class="label">High Risk</div>
+                            </div>
+                            <div class="stat-box">
+                                <div class="number" style="color: #ffd93d;">${stats.medium_risk}</div>
+                                <div class="label">Medium Risk</div>
+                            </div>
+                        `;
+                    }
+                })
+                .catch(error => console.error('Stats error:', error));
+        }
+
+        function loadRecentScans() {
+            fetch('{% url "scanner:history" %}')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success && data.data.length > 0) {
+                        const tbody = document.querySelector('.scan-table tbody');
+                        tbody.innerHTML = data.data.map(scan => `
+                            <tr>
+                                <td>${scan.target}</td>
+                                <td>${scan.target_ip}</td>
+                                <td>
+                                    <span class="risk-badge risk-${scan.overall_risk.toLowerCase()}">
+                                        ${scan.overall_risk}
+                                    </span>
+                                </td>
+                                <td>${scan.open_ports_count}</td>
+                                <td>${new Date(scan.created_at).toLocaleString()}</td>
+                            </tr>
+                        `).join('');
+                    }
+                })
+                .catch(error => console.error('Recent scans error:', error));
+        }
+
+        // Sidebar Navigation Functions
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            sidebar.style.transform = sidebar.style.transform === 'translateX(0px)' || !sidebar.style.transform
+                ? 'translateX(-280px)'
+                : 'translateX(0px)';
+        }
+
+        // Close sidebar on mobile when clicking on nav
+        document.querySelectorAll('.nav-link').forEach(link => {
+            link.addEventListener('click', function() {
+                if (window.innerWidth < 768) {
+                    document.getElementById('sidebar').style.transform = 'translateX(-280px)';
+                }
+            });
+        });
+
+        // Show menu toggle on mobile
+        window.addEventListener('resize', function() {
+            const menuToggle = document.querySelector('.menu-toggle');
+            if (window.innerWidth < 768) {
+                menuToggle.style.display = 'block';
+                document.getElementById('sidebar').style.transform = 'translateX(-280px)';
+            } else {
+                menuToggle.style.display = 'none';
+                document.getElementById('sidebar').style.transform = 'translateX(0)';
+            }
+        });
+
+        // Initial check for mobile
+        window.addEventListener('load', function() {
+            const menuToggle = document.querySelector('.menu-toggle');
+            if (window.innerWidth < 768) {
+                menuToggle.style.display = 'block';
+                document.getElementById('sidebar').style.transform = 'translateX(-280px)';
+            }
+        });
+
+        // Tab Switching Function
+        function switchTab(tabName, event) {
+            event.preventDefault();
+
+            // Hide all pages
+            document.querySelectorAll('.tab-page').forEach(page => {
+                page.style.display = 'none';
+            });
+
+            // Show selected page
+            const selectedPage = document.getElementById(tabName + '-page');
+            if (selectedPage) {
+                selectedPage.style.display = 'block';
+            }
+
+            // Refresh stats when switching to dashboard
+            if (tabName === 'dashboard') {
+                loadDashboardStats();
+            }
+
+            // Update active nav link
+            document.querySelectorAll('.nav-link').forEach(link => {
+                link.classList.remove('active');
+            });
+            event.target.closest('.nav-link').classList.add('active');
+
+            // Close sidebar on mobile
+            if (window.innerWidth < 768) {
+                document.getElementById('sidebar').style.transform = 'translateX(-280px)';
+            }
+        }
+
+        // URL Scanning Functions
+        function performURLScan() {
+            const url = document.getElementById('urlInput').value.trim();
+
+            if (!url) {
+                showURLError('Please enter a URL or domain');
+                return;
+            }
+
+            // Show loading state
+            document.getElementById('urlLoading').classList.add('active');
+            document.getElementById('urlResults').classList.remove('active');
+            document.getElementById('urlErrorMessage').classList.remove('active');
+
+            fetch('{% url "scanner:api_scan_url" %}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': CSRF_TOKEN
+                },
+                body: JSON.stringify({ url: url })
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('urlLoading').classList.remove('active');
+
+                if (data.success) {
+                    displayURLResults(data.data);
+                } else {
+                    showURLError(data.error || 'Scan failed');
+                }
+            })
+            .catch(error => {
+                document.getElementById('urlLoading').classList.remove('active');
+                showURLError('Network error: ' + error.message);
+            });
+        }
+
+        function displayURLResults(result) {
+            const dnsInfo = result.dns_info;
+
+            // Update domain info
+            document.getElementById('resultDomain').textContent = result.domain;
+            document.getElementById('resultDomainIP').textContent = result.primary_ip || 'Not Available';
+            document.getElementById('resultReverseDNS').textContent = result.reverse_dns || 'Not Available';
+
+            // Display A Records
+            if (dnsInfo.a_records && dnsInfo.a_records.length > 0) {
+                document.getElementById('aRecords').innerHTML = dnsInfo.a_records
+                    .map(ip => `<div class="dns-record-item">📍 ${ip}</div>`)
+                    .join('');
+                document.getElementById('aRecordsDiv').style.display = 'block';
+            } else {
+                document.getElementById('aRecordsDiv').style.display = 'none';
+            }
+
+            // Display AAAA Records
+            if (dnsInfo.aaaa_records && dnsInfo.aaaa_records.length > 0) {
+                document.getElementById('aaaaRecords').innerHTML = dnsInfo.aaaa_records
+                    .map(ip => `<div class="dns-record-item">📍 ${ip}</div>`)
+                    .join('');
+                document.getElementById('aaaaRecordsDiv').style.display = 'block';
+            } else {
+                document.getElementById('aaaaRecordsDiv').style.display = 'none';
+            }
+
+            // Display MX Records
+            if (dnsInfo.mx_records && dnsInfo.mx_records.length > 0) {
+                document.getElementById('mxRecords').innerHTML = dnsInfo.mx_records
+                    .map(mx => `<div class="dns-record-item">📧 Priority: ${mx[0]} - ${mx[1]}</div>`)
+                    .join('');
+                document.getElementById('mxRecordsDiv').style.display = 'block';
+            } else {
+                document.getElementById('mxRecordsDiv').style.display = 'none';
+            }
+
+            // Display NS Records
+            if (dnsInfo.ns_records && dnsInfo.ns_records.length > 0) {
+                document.getElementById('nsRecords').innerHTML = dnsInfo.ns_records
+                    .map(ns => `<div class="dns-record-item">🔗 ${ns}</div>`)
+                    .join('');
+                document.getElementById('nsRecordsDiv').style.display = 'block';
+            } else {
+                document.getElementById('nsRecordsDiv').style.display = 'none';
+            }
+
+            // Display TXT Records
+            if (dnsInfo.txt_records && dnsInfo.txt_records.length > 0) {
+                document.getElementById('txtRecords').innerHTML = dnsInfo.txt_records
+                    .map(txt => `<div class="dns-record-item" style="word-break: break-all;">${txt}</div>`)
+                    .join('');
+                document.getElementById('txtRecordsDiv').style.display = 'block';
+            } else {
+                document.getElementById('txtRecordsDiv').style.display = 'none';
+            }
+
+            // Display CNAME Record
+            if (dnsInfo.cname_record) {
+                document.getElementById('cnameRecord').innerHTML = `<div class="dns-record-item">${dnsInfo.cname_record}</div>`;
+                document.getElementById('cnameRecordDiv').style.display = 'block';
+            } else {
+                document.getElementById('cnameRecordDiv').style.display = 'none';
+            }
+
+            // Display Security Issues
+            if (result.security_issues && result.security_issues.length > 0) {
+                document.getElementById('securityIssuesList').innerHTML = result.security_issues
+                    .map(issue => `
+                        <div class="security-issue ${issue.severity.toLowerCase()}">
+                            <div class="security-issue-title">${issue.title}</div>
+                            <div class="security-issue-description">${issue.description}</div>
+                            <div class="security-issue-recommendation">💡 ${issue.recommendation}</div>
+                        </div>
+                    `)
+                    .join('');
+            }
+
+            // Show results
+            document.getElementById('urlResults').classList.add('active');
+        }
+
+        function showURLError(message) {
+            const errorEl = document.getElementById('urlErrorMessage');
+            errorEl.textContent = '❌ ' + message;
+            errorEl.classList.add('active');
+        }
+
+        // Allow Enter key for URL scan
+        document.getElementById('urlInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') performURLScan();
+        });
+
+        // Nmap Scan Functions
+        function performNmapScan() {
+            const target = document.getElementById('nmapTargetInput').value.trim();
+            const scanType = document.getElementById('nmapScanType').value;
+
+            if (!target) {
+                showNmapError('Please enter a target IP or domain');
+                return;
+            }
+
+            document.getElementById('nmapLoading').classList.add('active');
+            document.getElementById('nmapResults').classList.remove('active');
+            document.getElementById('nmapErrorMessage').classList.remove('active');
+
+            fetch('{% url "scanner:api_nmap_scan" %}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': CSRF_TOKEN
+                },
+                body: JSON.stringify({ target: target, scan_type: scanType })
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('nmapLoading').classList.remove('active');
+                if (data.success) {
+                    displayNmapResults(data.data);
+                } else {
+                    showNmapError(data.error || 'Nmap scan failed');
+                }
+            })
+            .catch(error => {
+                document.getElementById('nmapLoading').classList.remove('active');
+                showNmapError('Network error: ' + error.message);
+            });
+        }
+
+        function displayNmapResults(result) {
+            document.getElementById('nmapResultTarget').textContent = result.target;
+            document.getElementById('nmapResultType').textContent = result.scan_type;
+            document.getElementById('nmapResultDuration').textContent = result.duration;
+            document.getElementById('nmapOutput').textContent = result.output;
+            document.getElementById('nmapResults').classList.add('active');
+        }
+
+        function showNmapError(message) {
+            const errorEl = document.getElementById('nmapErrorMessage');
+            errorEl.textContent = '❌ ' + message;
+            errorEl.classList.add('active');
+        }
+
+        document.getElementById('nmapTargetInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') performNmapScan();
+        });
+
+        // HTTP Headers Analyzer
+        let lastHeadersResult = null;
+
+        function performHeadersScan() {
+            const url = document.getElementById('headersInput').value.trim();
+            if (!url) {
+                showHeadersError('Please enter a URL or domain');
+                return;
+            }
+
+            document.getElementById('headersLoading').classList.add('active');
+            document.getElementById('headersResults').classList.remove('active');
+            document.getElementById('headersErrorMessage').classList.remove('active');
+
+            fetch('{% url "scanner:api_scan_headers" %}', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-CSRFToken': CSRF_TOKEN },
+                body: JSON.stringify({ url: url })
+            })
+            .then(r => r.json())
+            .then(data => {
+                document.getElementById('headersLoading').classList.remove('active');
+                if (data.success) {
+                    displayHeadersResults(data.data);
+                } else {
+                    showHeadersError(data.error || 'Scan failed');
+                }
+            })
+            .catch(err => {
+                document.getElementById('headersLoading').classList.remove('active');
+                showHeadersError('Network error: ' + err.message);
+            });
+        }
+
+        function displayHeadersResults(data) {
+            lastHeadersResult = data;
+            document.getElementById('headersResultURL').textContent = data.url;
+            document.getElementById('headersTotalCount').textContent = data.total_headers + ' headers received';
+
+            // Status code with color
+            const sc = data.status_code;
+            const scColor = sc >= 200 && sc < 300 ? '#38a169' : sc >= 300 && sc < 400 ? '#d69e2e' : '#e53e3e';
+            document.getElementById('headersStatusCode').innerHTML =
+                `<span style="font-weight:700; color:${scColor};">${sc}</span>`;
+
+            // Grade badge
+            const gradeColors = { A: '#38a169', 'B+': '#48bb78', B: '#68d391', C: '#d69e2e', D: '#ed8936', F: '#e53e3e' };
+            const grade = data.grade;
+            const gc = gradeColors[grade] || '#718096';
+            document.getElementById('headersGrade').innerHTML =
+                `<div style="display:inline-flex;align-items:center;gap:12px;background:#f7fafc;border:2px solid ${gc};border-radius:10px;padding:12px 20px;">
+                    <span style="font-size:2.2em;font-weight:800;color:${gc};">${grade}</span>
+                    <span style="color:#555;font-size:0.95em;">Security Grade — ${data.present.length} of ${data.present.length + data.missing.length} headers present</span>
+                </div>`;
+
+            // Info disclosure headers
+            const infoEntries = Object.entries(data.info_headers);
+            if (infoEntries.length > 0) {
+                document.getElementById('headersInfoSection').style.display = 'block';
+                document.getElementById('headersInfoList').innerHTML = infoEntries.map(([k, v]) =>
+                    `<div style="padding:10px 14px;background:#fffbeb;border-left:4px solid #d69e2e;border-radius:6px;">
+                        <span style="font-weight:600;color:#744210;">${k}:</span>
+                        <span style="color:#555;margin-left:8px;font-family:monospace;font-size:0.9em;">${v}</span>
+                        <div style="font-size:0.82em;color:#975a16;margin-top:4px;">⚠️ Exposes server technology — consider removing</div>
+                    </div>`
+                ).join('');
+            } else {
+                document.getElementById('headersInfoSection').style.display = 'none';
+            }
+
+            // Missing headers
+            const sevColor = { HIGH: '#e53e3e', MEDIUM: '#d69e2e', LOW: '#718096' };
+            const sevBg = { HIGH: '#fff5f5', MEDIUM: '#fffbeb', LOW: '#f7fafc' };
+            document.getElementById('headersMissingList').innerHTML = data.missing.length === 0
+                ? '<div style="color:#38a169;padding:12px;">🎉 All security headers are present!</div>'
+                : data.missing.map(h =>
+                    `<div style="padding:12px 16px;background:${sevBg[h.severity]};border-left:4px solid ${sevColor[h.severity]};border-radius:6px;">
+                        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+                            <span style="font-weight:700;color:#333;">${h.label}</span>
+                            <span style="font-size:0.78em;font-weight:700;color:${sevColor[h.severity]};background:${sevBg[h.severity]};border:1px solid ${sevColor[h.severity]};padding:2px 8px;border-radius:20px;">${h.severity}</span>
+                        </div>
+                        <div style="font-size:0.9em;color:#555;">${h.description}</div>
+                    </div>`
+                ).join('');
+
+            // Present headers
+            document.getElementById('headersPresentList').innerHTML = data.present.length === 0
+                ? '<div style="color:#e53e3e;padding:12px;">No security headers found.</div>'
+                : data.present.map(h =>
+                    `<div style="padding:12px 16px;background:#f0fff4;border-left:4px solid #38a169;border-radius:6px;">
+                        <div style="font-weight:700;color:#276749;margin-bottom:4px;">✅ ${h.label}</div>
+                        <div style="font-size:0.82em;color:#555;font-family:monospace;word-break:break-all;margin-bottom:4px;">${h.value}</div>
+                        <div style="font-size:0.85em;color:#2f855a;">${h.description}</div>
+                    </div>`
+                ).join('');
+
+            document.getElementById('headersResults').classList.add('active');
+        }
+
+        function showHeadersError(msg) {
+            const el = document.getElementById('headersErrorMessage');
+            el.textContent = '❌ ' + msg;
+            el.classList.add('active');
+        }
+
+        document.getElementById('headersInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') performHeadersScan();
+        });
+
+        // PDF Download - HTTP Headers Report
+        function downloadHeadersPDF() {
+            if (!lastHeadersResult) return;
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            const d = lastHeadersResult;
+            let y = 20;
+
+            // Title
+            doc.setFontSize(20);
+            doc.setTextColor(102, 126, 234);
+            doc.text('HTTP Headers Security Report', 14, y);
+            y += 8;
+            doc.setFontSize(10);
+            doc.setTextColor(120, 120, 120);
+            doc.text('Generated: ' + new Date().toLocaleString(), 14, y);
+            y += 4;
+            doc.line(14, y, 196, y);
+            y += 8;
+
+            // Summary table
+            doc.setFontSize(13);
+            doc.setTextColor(50, 50, 50);
+            doc.text('Scan Summary', 14, y);
+            y += 4;
+            doc.autoTable({
+                body: [
+                    ['URL', d.url],
+                    ['HTTP Status', String(d.status_code)],
+                    ['Security Grade', d.grade],
+                    ['Headers Present', d.present.length + ' of ' + (d.present.length + d.missing.length)],
+                    ['Total Response Headers', String(d.total_headers)],
+                ],
+                startY: y,
+                styles: { fontSize: 10, cellPadding: 4 },
+                columnStyles: {
+                    0: { fontStyle: 'bold', cellWidth: 55, fillColor: [240, 242, 255] },
+                    1: { cellWidth: 'auto' },
+                },
+                theme: 'grid',
+            });
+            y = doc.lastAutoTable.finalY + 10;
+
+            // Info disclosure headers
+            if (Object.keys(d.info_headers).length > 0) {
+                doc.setFontSize(13);
+                doc.setTextColor(50, 50, 50);
+                doc.text('Info Disclosure Headers', 14, y);
+                y += 4;
+                doc.autoTable({
+                    head: [['Header', 'Value', 'Risk']],
+                    body: Object.entries(d.info_headers).map(([k, v]) => [k, v, 'Exposes server info']),
+                    startY: y,
+                    styles: { fontSize: 9, cellPadding: 4 },
+                    headStyles: { fillColor: [214, 158, 46], textColor: 255, fontStyle: 'bold' },
+                    alternateRowStyles: { fillColor: [255, 251, 235] },
+                    columnStyles: { 0: { cellWidth: 45 }, 1: { cellWidth: 90 }, 2: { cellWidth: 'auto' } },
+                });
+                y = doc.lastAutoTable.finalY + 10;
+            }
+
+            // Missing security headers
+            if (d.missing.length > 0) {
+                doc.setFontSize(13);
+                doc.setTextColor(50, 50, 50);
+                doc.text('Missing Security Headers', 14, y);
+                y += 4;
+                doc.autoTable({
+                    head: [['Header', 'Severity', 'Description']],
+                    body: d.missing.map(h => [h.label, h.severity, h.description]),
+                    startY: y,
+                    styles: { fontSize: 9, cellPadding: 4 },
+                    headStyles: { fillColor: [229, 62, 62], textColor: 255, fontStyle: 'bold' },
+                    alternateRowStyles: { fillColor: [255, 245, 245] },
+                    columnStyles: { 0: { cellWidth: 55 }, 1: { cellWidth: 25 }, 2: { cellWidth: 'auto' } },
+                    didParseCell: function(data) {
+                        if (data.column.index === 1 && data.section === 'body') {
+                            const colors = { HIGH: [229, 62, 62], MEDIUM: [214, 158, 46], LOW: [113, 128, 150] };
+                            data.cell.styles.textColor = colors[data.cell.text[0]] || [0,0,0];
+                            data.cell.styles.fontStyle = 'bold';
+                        }
+                    }
+                });
+                y = doc.lastAutoTable.finalY + 10;
+            }
+
+            // Present security headers
+            if (d.present.length > 0) {
+                if (y > 240) { doc.addPage(); y = 20; }
+                doc.setFontSize(13);
+                doc.setTextColor(50, 50, 50);
+                doc.text('Present Security Headers', 14, y);
+                y += 4;
+                doc.autoTable({
+                    head: [['Header', 'Value']],
+                    body: d.present.map(h => [h.label, h.value]),
+                    startY: y,
+                    styles: { fontSize: 9, cellPadding: 4 },
+                    headStyles: { fillColor: [56, 161, 105], textColor: 255, fontStyle: 'bold' },
+                    alternateRowStyles: { fillColor: [240, 255, 244] },
+                    columnStyles: { 0: { cellWidth: 55 }, 1: { cellWidth: 'auto' } },
+                });
+                y = doc.lastAutoTable.finalY + 10;
+            }
+
+            // Footer
+            doc.setFontSize(8);
+            doc.setTextColor(160, 160, 160);
+            doc.text('NetworkScanner — HTTP Headers Security Report', 14, 290);
+
+            const filename = 'headers-report-' + (new URL(d.url)).hostname + '-' + new Date().toISOString().slice(0, 10) + '.pdf';
+            doc.save(filename);
+        }
+
+        // PDF Download - Current Scan Result
+        function downloadScanResultPDF() {
+            if (!lastScanResult) return;
+
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            const assessment = lastScanResult.assessment;
+            const scanInfo = lastScanResult.scan_info;
+            let y = 20;
+
+            // Title
+            doc.setFontSize(20);
+            doc.setTextColor(102, 126, 234);
+            doc.text('Network Scan Report', 14, y);
+            y += 8;
+
+            doc.setFontSize(10);
+            doc.setTextColor(120, 120, 120);
+            doc.text('Generated: ' + new Date().toLocaleString(), 14, y);
+            y += 4;
+            doc.line(14, y, 196, y);
+            y += 8;
+
+            // Target Info
+            doc.setFontSize(13);
+            doc.setTextColor(50, 50, 50);
+            doc.text('Target Information', 14, y);
+            y += 6;
+
+            const infoRows = [
+                ['Target', lastScanResult.target],
+                ['IP Address', scanInfo.target],
+                ['Network Type', lastScanResult.is_private ? 'Private (Internal)' : 'Public (External)'],
+                ['Overall Risk', assessment.overall_risk],
+            ];
+
+            if (lastScanResult.dns_info && lastScanResult.dns_info.success) {
+                infoRows.push(['DNS Resolved IPs', lastScanResult.dns_info.ips.join(', ')]);
+            }
+
+            doc.autoTable({
+                body: infoRows,
+                startY: y,
+                styles: { fontSize: 10, cellPadding: 4 },
+                columnStyles: {
+                    0: { fontStyle: 'bold', cellWidth: 45, fillColor: [240, 242, 255] },
+                    1: { cellWidth: 'auto' },
+                },
+                theme: 'grid',
+            });
+            y = doc.lastAutoTable.finalY + 10;
+
+            // Open Ports
+            doc.setFontSize(13);
+            doc.setTextColor(50, 50, 50);
+            doc.text('Open Ports & Services', 14, y);
+            y += 4;
+
+            if (scanInfo.ports.length === 0) {
+                doc.setFontSize(10);
+                doc.setTextColor(40, 167, 69);
+                doc.text('No common ports detected as open. Good security posture!', 14, y + 6);
+                y += 14;
+            } else {
+                const riskColors = {
+                    'CRITICAL': [220, 53, 69],
+                    'HIGH': [255, 107, 53],
+                    'MEDIUM': [255, 193, 7],
+                    'LOW': [40, 167, 69],
+                };
+                const portRows = scanInfo.ports.map(p => [p.port, p.service, p.risk_level, p.reason]);
+
+                doc.autoTable({
+                    head: [['Port', 'Service', 'Risk', 'Reason']],
+                    body: portRows,
+                    startY: y,
+                    styles: { fontSize: 9, cellPadding: 4 },
+                    headStyles: { fillColor: [102, 126, 234], textColor: 255, fontStyle: 'bold' },
+                    alternateRowStyles: { fillColor: [245, 247, 255] },
+                    columnStyles: {
+                        0: { cellWidth: 20 },
+                        1: { cellWidth: 35 },
+                        2: { cellWidth: 25 },
+                        3: { cellWidth: 'auto' },
+                    },
+                    didParseCell: function(data) {
+                        if (data.column.index === 2 && data.section === 'body') {
+                            const color = riskColors[data.cell.text[0]] || [100, 100, 100];
+                            data.cell.styles.textColor = color;
+                            data.cell.styles.fontStyle = 'bold';
+                        }
+                    }
+                });
+                y = doc.lastAutoTable.finalY + 10;
+            }
+
+            // Recommendations
+            if (assessment.recommendations && assessment.recommendations.length > 0) {
+                doc.setFontSize(13);
+                doc.setTextColor(50, 50, 50);
+                doc.text('Security Recommendations', 14, y);
+                y += 6;
+
+                doc.setFontSize(10);
+                doc.setTextColor(60, 60, 60);
+                assessment.recommendations.forEach(rec => {
+                    const lines = doc.splitTextToSize('• ' + rec.replace(/^[🔴🟠🟡🟢•]\s*/u, ''), 175);
+                    doc.text(lines, 14, y);
+                    y += lines.length * 6;
+                });
+            }
+
+            // Footer
+            doc.setFontSize(8);
+            doc.setTextColor(160, 160, 160);
+            doc.text('NetworkScanner Security Report', 14, 290);
+
+            doc.save('scan-report-' + lastScanResult.target + '-' + new Date().toISOString().slice(0, 10) + '.pdf');
+        }
+
+        // PDF Download - Scan History
+        function downloadHistoryPDF() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+
+            // Header
+            doc.setFontSize(20);
+            doc.setTextColor(102, 126, 234);
+            doc.text('Network Scanner - Scan History', 14, 20);
+
+            doc.setFontSize(10);
+            doc.setTextColor(120, 120, 120);
+            doc.text('Generated: ' + new Date().toLocaleString(), 14, 28);
+            doc.line(14, 32, 196, 32);
+
+            // Collect rows from the table
+            const rows = [];
+            document.querySelectorAll('#scansTableBody tr').forEach(row => {
+                const cells = row.querySelectorAll('td');
+                if (cells.length >= 5) {
+                    rows.push([
+                        cells[0].textContent.trim(),
+                        cells[1].textContent.trim(),
+                        cells[2].textContent.trim(),
+                        cells[3].textContent.trim(),
+                        cells[4].textContent.trim(),
+                    ]);
+                }
+            });
+
+            if (rows.length === 0) {
+                doc.setFontSize(12);
+                doc.setTextColor(180, 0, 0);
+                doc.text('No scan history available.', 14, 45);
+            } else {
+                doc.autoTable({
+                    head: [['Target', 'IP Address', 'Risk Level', 'Open Ports', 'Date']],
+                    body: rows,
+                    startY: 38,
+                    styles: { fontSize: 9, cellPadding: 4 },
+                    headStyles: {
+                        fillColor: [102, 126, 234],
+                        textColor: 255,
+                        fontStyle: 'bold',
+                    },
+                    alternateRowStyles: { fillColor: [245, 247, 255] },
+                    columnStyles: {
+                        0: { cellWidth: 40 },
+                        1: { cellWidth: 35 },
+                        2: { cellWidth: 28 },
+                        3: { cellWidth: 25 },
+                        4: { cellWidth: 50 },
+                    },
+                });
+            }
+
+            doc.save('scan-history-' + new Date().toISOString().slice(0, 10) + '.pdf');
+        }
+
+        // ===== NEW SCANNING FUNCTIONS =====
+
+        // Ping Scanner
+        function performPing() {
+            const target = document.getElementById('pingInput').value.trim();
+            if (!target) {
+                showPingError('Please enter an IP address or domain');
+                return;
+            }
+
+            document.getElementById('pingLoading').classList.add('active');
+            document.getElementById('pingResults').style.display = 'none';
+            document.getElementById('pingError').classList.remove('active');
+
+            fetch('{% url "scanner:api_ping" %}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': CSRF_TOKEN
+                },
+                body: JSON.stringify({ target: target })
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('pingLoading').classList.remove('active');
+                if (data.success) {
+                    displayPingResults(data.data);
+                } else {
+                    showPingError(data.error || 'Ping failed');
+                }
+            })
+            .catch(error => {
+                document.getElementById('pingLoading').classList.remove('active');
+                showPingError('Error: ' + error.message);
+            });
+        }
+
+        function displayPingResults(data) {
+            const html = `
+                <div class="target-info">
+                    <div class="info-row">
+                        <span class="info-label">Target:</span>
+                        <span class="info-value">${data.target}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Status:</span>
+                        <span class="info-value">${data.reachable ? '✅ Reachable' : '❌ Unreachable'}</span>
+                    </div>
+                    ${data.reachable ? `
+                    <div class="info-row">
+                        <span class="info-label">Response Time:</span>
+                        <span class="info-value">${data.response_time_ms ? data.response_time_ms.toFixed(2) + ' ms' : 'N/A'}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Packets:</span>
+                        <span class="info-value">${data.packets_received}/${data.packets_sent} received</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Packet Loss:</span>
+                        <span class="info-value">${data.packet_loss.toFixed(1)}%</span>
+                    </div>
+                    ${data.min_time ? `<div class="info-row">
+                        <span class="info-label">Min/Avg/Max:</span>
+                        <span class="info-value">${data.min_time.toFixed(2)}/${data.avg_time.toFixed(2)}/${data.max_time.toFixed(2)} ms</span>
+                    </div>` : ''}
+                    ` : `
+                    <div class="info-row">
+                        <span class="info-label">Error:</span>
+                        <span class="info-value">${data.error || 'No response'}</span>
+                    </div>
+                    `}
+                </div>
+            `;
+            document.getElementById('pingResultsContent').innerHTML = html;
+            document.getElementById('pingResults').style.display = 'block';
+        }
+
+        function showPingError(message) {
+            document.getElementById('pingError').textContent = message;
+            document.getElementById('pingError').classList.add('active');
+        }
+
+        // Traceroute Scanner
+        function performTraceroute() {
+            const target = document.getElementById('traceInput').value.trim();
+            if (!target) {
+                showTraceError('Please enter an IP address or domain');
+                return;
+            }
+
+            document.getElementById('traceLoading').classList.add('active');
+            document.getElementById('traceResults').style.display = 'none';
+            document.getElementById('traceError').classList.remove('active');
+
+            fetch('{% url "scanner:api_traceroute" %}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': CSRF_TOKEN
+                },
+                body: JSON.stringify({ target: target })
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('traceLoading').classList.remove('active');
+                if (data.success) {
+                    displayTracerouteResults(data.data);
+                } else {
+                    showTraceError(data.error || 'Traceroute failed');
+                }
+            })
+            .catch(error => {
+                document.getElementById('traceLoading').classList.remove('active');
+                showTraceError('Error: ' + error.message);
+            });
+        }
+
+        function displayTracerouteResults(data) {
+            let hopsHtml = '<table class="scan-table"><thead><tr><th>Hop</th><th>IP Address</th><th>Hostname</th><th>Latency (ms)</th><th>Status</th></tr></thead><tbody>';
+
+            if (data.hops && data.hops.length > 0) {
+                data.hops.forEach(hop => {
+                    const latency = hop.latency_ms ? hop.latency_ms.toFixed(2) : '—';
+                    const statusBadge = hop.status === 'reached' ? '<span style="color: #2e7d32;">✓ Reached</span>' : '<span style="color: #e65100;">✗ Timeout</span>';
+                    hopsHtml += `<tr>
+                        <td>${hop.hop_number}</td>
+                        <td><code>${hop.ip || '—'}</code></td>
+                        <td>${hop.hostname || '—'}</td>
+                        <td>${latency}</td>
+                        <td>${statusBadge}</td>
+                    </tr>`;
+                });
+            }
+            hopsHtml += '</tbody></table>';
+
+            const html = `
+                <div class="target-info">
+                    <div class="info-row">
+                        <span class="info-label">Target:</span>
+                        <span class="info-value">${data.target}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Total Hops:</span>
+                        <span class="info-value">${data.total_hops}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Reached:</span>
+                        <span class="info-value">${data.reached ? '✅ Yes' : '❌ No'}</span>
+                    </div>
+                </div>
+                <div class="ports-section">
+                    <h3>Network Path</h3>
+                    ${hopsHtml}
+                </div>
+            `;
+            document.getElementById('traceResultsContent').innerHTML = html;
+            document.getElementById('traceResults').style.display = 'block';
+        }
+
+        function showTraceError(message) {
+            document.getElementById('traceError').textContent = message;
+            document.getElementById('traceError').classList.add('active');
+        }
+
+        // SSL Certificate Scanner
+        function performSSL() {
+            const target = document.getElementById('sslInput').value.trim();
+            const port = document.getElementById('sslPort').value.trim() || 443;
+
+            if (!target) {
+                showSSLError('Please enter a domain');
+                return;
+            }
+
+            document.getElementById('sslLoading').classList.add('active');
+            document.getElementById('sslResults').style.display = 'none';
+            document.getElementById('sslError').classList.remove('active');
+
+            fetch('{% url "scanner:api_ssl" %}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': CSRF_TOKEN
+                },
+                body: JSON.stringify({ target: target, port: parseInt(port) })
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('sslLoading').classList.remove('active');
+                if (data.success) {
+                    displaySSLResults(data.data);
+                } else {
+                    showSSLError(data.error || 'SSL scan failed');
+                }
+            })
+            .catch(error => {
+                document.getElementById('sslLoading').classList.remove('active');
+                showSSLError('Error: ' + error.message);
+            });
+        }
+
+        function displaySSLResults(data) {
+            let issuesHtml = '';
+            if (data.security_issues && data.security_issues.length > 0) {
+                issuesHtml = '<div class="ports-section"><h3>Security Issues</h3>';
+                data.security_issues.forEach(issue => {
+                    const severityClass = issue.severity.toLowerCase();
+                    issuesHtml += `
+                        <div class="security-issue ${severityClass}">
+                            <div class="security-issue-title">${issue.title}</div>
+                            <div class="security-issue-description">${issue.description}</div>
+                            <div class="security-issue-recommendation">Recommendation: ${issue.recommendation}</div>
+                        </div>
+                    `;
+                });
+                issuesHtml += '</div>';
+            }
+
+            let certHtml = '';
+            if (data.certificate) {
+                const cert = data.certificate;
+                certHtml = `
+                    <div class="ports-section">
+                        <h3>Certificate Information</h3>
+                        <div class="target-info">
+                            <div class="info-row">
+                                <span class="info-label">Subject:</span>
+                                <span class="info-value">${cert.subject || 'N/A'}</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">Issuer:</span>
+                                <span class="info-value">${cert.issuer || 'N/A'}</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">Valid From:</span>
+                                <span class="info-value">${cert.valid_from || 'N/A'}</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">Valid Until:</span>
+                                <span class="info-value">${cert.valid_until || 'N/A'}</span>
+                            </div>
+                            ${cert.days_remaining ? `
+                            <div class="info-row">
+                                <span class="info-label">Days Remaining:</span>
+                                <span class="info-value ${cert.days_remaining < 0 ? 'style="color: #c62828;"' : ''}">
+                                    ${cert.days_remaining < 0 ? '❌ Expired' : (cert.days_remaining < 30 ? '⚠️ ' : '✅ ') + cert.days_remaining + ' days'}
+                                </span>
+                            </div>
+                            ` : ''}
+                            <div class="info-row">
+                                <span class="info-label">Serial Number:</span>
+                                <span class="info-value" style="font-family: monospace; font-size: 0.9em;">${cert.serial_number || 'N/A'}</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            const html = `
+                <div class="target-info">
+                    <div class="info-row">
+                        <span class="info-label">Target:</span>
+                        <span class="info-value">${data.target}:${data.port}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Chain Valid:</span>
+                        <span class="info-value">${data.chain_valid ? '✅ Yes' : '❌ No'}</span>
+                    </div>
+                </div>
+                ${certHtml}
+                ${issuesHtml}
+            `;
+            document.getElementById('sslResultsContent').innerHTML = html;
+            document.getElementById('sslResults').style.display = 'block';
+        }
+
+        function showSSLError(message) {
+            document.getElementById('sslError').textContent = message;
+            document.getElementById('sslError').classList.add('active');
+        }
+
+        // Whois Scanner
+        function performWhois() {
+            const target = document.getElementById('whoisInput').value.trim();
+            if (!target) {
+                showWhoisError('Please enter a domain name');
+                return;
+            }
+
+            document.getElementById('whoisLoading').classList.add('active');
+            document.getElementById('whoisResults').style.display = 'none';
+            document.getElementById('whoisError').classList.remove('active');
+
+            fetch('{% url "scanner:api_whois" %}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': CSRF_TOKEN
+                },
+                body: JSON.stringify({ target: target })
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('whoisLoading').classList.remove('active');
+                if (data.success) {
+                    displayWhoisResults(data.data);
+                } else {
+                    showWhoisError(data.error || 'Whois lookup failed');
+                }
+            })
+            .catch(error => {
+                document.getElementById('whoisLoading').classList.remove('active');
+                showWhoisError('Error: ' + error.message);
+            });
+        }
+
+        function displayWhoisResults(data) {
+            const whoisData = data.whois_data;
+            const expiryWarning = data.days_until_expiry !== null && data.days_until_expiry < 30 ?
+                `<div style="background: #fff3e0; color: #e65100; padding: 10px; border-radius: 6px; margin-bottom: 15px; border-left: 4px solid #e65100;">
+                    ⚠️ Domain expires in ${data.days_until_expiry} days
+                </div>` : '';
+
+            let nameserversHtml = '';
+            if (whoisData.name_servers && whoisData.name_servers.length > 0) {
+                nameserversHtml = '<div class="ports-section"><h3>Name Servers</h3>';
+                whoisData.name_servers.forEach(ns => {
+                    nameserversHtml += `<div class="dns-record-item">${ns}</div>`;
+                });
+                nameserversHtml += '</div>';
+            }
+
+            const html = `
+                ${expiryWarning}
+                <div class="target-info">
+                    <div class="info-row">
+                        <span class="info-label">Domain:</span>
+                        <span class="info-value">${whoisData.domain || 'N/A'}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Registrar:</span>
+                        <span class="info-value">${whoisData.registrar || 'N/A'}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Creation Date:</span>
+                        <span class="info-value">${whoisData.creation_date || 'N/A'}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Expiration Date:</span>
+                        <span class="info-value">${whoisData.expiration_date || 'N/A'}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Updated Date:</span>
+                        <span class="info-value">${whoisData.updated_date || 'N/A'}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Registrant:</span>
+                        <span class="info-value">${whoisData.registrant_name || 'N/A'}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Organization:</span>
+                        <span class="info-value">${whoisData.registrant_organization || 'N/A'}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Email:</span>
+                        <span class="info-value">${whoisData.registrant_email || 'N/A'}</span>
+                    </div>
+                </div>
+                ${nameserversHtml}
+            `;
+            document.getElementById('whoisResultsContent').innerHTML = html;
+            document.getElementById('whoisResults').style.display = 'block';
+        }
+
+        function showWhoisError(message) {
+            document.getElementById('whoisError').textContent = message;
+            document.getElementById('whoisError').classList.add('active');
+        }
+
+        // Webpage Scanner
+        function performWebpage() {
+            const url = document.getElementById('webpageInput').value.trim();
+            if (!url) {
+                showWebpageError('Please enter a URL');
+                return;
+            }
+
+            document.getElementById('webpageLoading').classList.add('active');
+            document.getElementById('webpageResults').style.display = 'none';
+            document.getElementById('webpageError').classList.remove('active');
+
+            fetch('{% url "scanner:api_webpage" %}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': CSRF_TOKEN
+                },
+                body: JSON.stringify({ url: url })
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('webpageLoading').classList.remove('active');
+                if (data.success) {
+                    displayWebpageResults(data.data);
+                } else {
+                    showWebpageError(data.error || 'Webpage scan failed');
+                }
+            })
+            .catch(error => {
+                document.getElementById('webpageLoading').classList.remove('active');
+                showWebpageError('Error: ' + error.message);
+            });
+        }
+
+        function displayWebpageResults(data) {
+            let html = `
+                <div class="target-info">
+                    <div class="info-row">
+                        <span class="info-label">Original URL:</span>
+                        <span class="info-value">${data.page_info.original_url}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Final URL:</span>
+                        <span class="info-value">${data.page_info.final_url}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Status Code:</span>
+                        <span class="info-value">${data.page_info.status_code}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Page Title:</span>
+                        <span class="info-value">${data.page_info.page_title}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Page Size:</span>
+                        <span class="info-value">${(data.page_info.page_size_bytes / 1024).toFixed(2)} KB</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Content Type:</span>
+                        <span class="info-value">${data.page_info.content_type}</span>
+                    </div>
+                </div>
+            `;
+
+            // Security Issues
+            if (data.security_issues && data.security_issues.length > 0) {
+                html += '<div class="ports-section"><h3>Security Issues</h3>';
+                data.security_issues.forEach(issue => {
+                    const severityClass = issue.severity.toLowerCase();
+                    html += `
+                        <div class="security-issue ${severityClass}">
+                            <div class="security-issue-title">${issue.title}</div>
+                            <div class="security-issue-description">${issue.description}</div>
+                            <div class="security-issue-recommendation">Recommendation: ${issue.recommendation}</div>
+                        </div>
+                    `;
+                });
+                html += '</div>';
+            }
+
+            // Links Analysis
+            if (data.links_analysis) {
+                html += `
+                    <div class="ports-section">
+                        <h3>Link Analysis</h3>
+                        <div class="target-info">
+                            <div class="info-row">
+                                <span class="info-label">Total Links:</span>
+                                <span class="info-value">${data.links_analysis.total_links}</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">Internal Links:</span>
+                                <span class="info-value">${data.links_analysis.internal_links.length}</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">External Links:</span>
+                                <span class="info-value">${data.links_analysis.external_links.length}</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            // Forms Analysis
+            if (data.forms_analysis) {
+                html += `
+                    <div class="ports-section">
+                        <h3>Form Analysis</h3>
+                        <div class="target-info">
+                            <div class="info-row">
+                                <span class="info-label">Total Forms:</span>
+                                <span class="info-value">${data.forms_analysis.total_forms}</span>
+                            </div>
+                        </div>
+                `;
+                if (data.forms_analysis.forms && data.forms_analysis.forms.length > 0) {
+                    data.forms_analysis.forms.forEach((form, idx) => {
+                        html += `
+                            <div style="margin-top: 15px; padding: 10px; background: #f5f5f5; border-radius: 6px; border-left: 3px solid #D4A574;">
+                                <strong>Form #${form.id}</strong>
+                                <div style="margin-top: 8px; font-size: 0.9em;">
+                                    <div>Method: <code>${form.method}</code></div>
+                                    <div>Action: <code>${form.action}</code></div>
+                                    <div>CSRF Protected: ${form.has_csrf ? '✅ Yes' : '❌ No'}</div>
+                                    <div>Input Fields: ${form.input_fields.length}</div>
+                                </div>
+                            </div>
+                        `;
+                    });
+                }
+                html += '</div>';
+            }
+
+            // Headers Analysis
+            if (data.headers_analysis) {
+                html += `
+                    <div class="ports-section">
+                        <h3>HTTP Headers</h3>
+                        <div class="target-info">
+                            <div class="info-row">
+                                <span class="info-label">Server:</span>
+                                <span class="info-value">${data.headers_analysis.server}</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">Powered By:</span>
+                                <span class="info-value">${data.headers_analysis.powered_by}</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">CSP:</span>
+                                <span class="info-value">${data.headers_analysis.content_security_policy !== 'Not set' ? '✅ Yes' : '❌ No'}</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">X-Frame-Options:</span>
+                                <span class="info-value">${data.headers_analysis.x_frame_options !== 'Not set' ? '✅ Yes' : '❌ No'}</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            document.getElementById('webpageResultsContent').innerHTML = html;
+            document.getElementById('webpageResults').style.display = 'block';
+        }
+
+        function showWebpageError(message) {
+            document.getElementById('webpageError').textContent = message;
+            document.getElementById('webpageError').classList.add('active');
+        }
+    </script>
+</body>
+</html>

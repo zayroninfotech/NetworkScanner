@@ -1,0 +1,98 @@
+/* Zayron Infotech Branding Styles */
+
+:root {
+    --zayron-primary: #0F2847;
+    --zayron-accent: #D4A574;
+    --zayron-dark: #0F2847;
+}
+
+/* Logo Styling */
+.logo-container {
+    text-align: center;
+    margin-bottom: 15px;
+    background: transparent;
+    padding: 15px 0;
+}
+
+.logo-container img {
+    height: 50px;
+    width: auto;
+    object-fit: contain;
+    margin-bottom: 10px;
+}
+
+.company-name {
+    font-weight: 700;
+    font-size: 1.25em;
+    color: #ffffff;
+    letter-spacing: 0.5px;
+    margin: 8px 0 4px 0;
+}
+
+.company-tagline {
+    font-size: 0.85em;
+    color: #ecf0f1;
+    font-weight: 400;
+    font-style: italic;
+}
+
+/* Footer Company Info */
+.company-footer {
+    text-align: center;
+    padding: 15px;
+    border-top: 1px solid #e5e7eb;
+    background: #f9fafb;
+    font-size: 0.85em;
+    color: #666;
+}
+
+.company-footer p {
+    margin: 4px 0;
+}
+
+.copyright-text {
+    font-weight: 500;
+    color: #1e3a8a;
+}
+
+.company-info-link {
+    color: #3b82f6;
+    text-decoration: none;
+    transition: color 0.3s ease;
+}
+
+.company-info-link:hover {
+    color: #1e3a8a;
+    text-decoration: underline;
+}
+
+/* Responsive Logo */
+@media (max-width: 768px) {
+    .logo-container img {
+        height: 40px;
+    }
+
+    .company-name {
+        font-size: 0.95em;
+    }
+
+    .company-tagline {
+        font-size: 0.7em;
+    }
+}
+
+@media (max-width: 480px) {
+    .logo-container img {
+        height: 35px;
+        margin-bottom: 8px;
+    }
+
+    .company-name {
+        font-size: 0.9em;
+        margin: 6px 0 2px 0;
+    }
+
+    .company-tagline {
+        font-size: 0.65em;
+    }
+}
