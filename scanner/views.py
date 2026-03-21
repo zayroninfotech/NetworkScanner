@@ -490,6 +490,8 @@ def scan_headers(request):
 
 @require_http_methods(["POST"])
 @csrf_protect
+@require_http_methods(["POST"])
+@csrf_protect
 def ping_scan(request):
     """Perform ICMP ping on target"""
     try:
