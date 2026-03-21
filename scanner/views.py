@@ -305,6 +305,9 @@ def nmap_scan(request):
             return JsonResponse({'success': False, 'error': 'Invalid scan type'}, status=400)
 
         nmap_path = shutil.which('nmap')
+        # Fallback to common installation path
+        if not nmap_path and os.path.exists('/usr/bin/nmap'):
+            nmap_path = '/usr/bin/nmap'
         if not nmap_path:
             return JsonResponse({'success': False, 'error': 'Nmap is not installed or not found in PATH'}, status=500)
 
