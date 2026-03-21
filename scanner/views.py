@@ -42,7 +42,6 @@ def index(request):
 
 
 @require_http_methods(["POST"])
-@csrf_protect
 def scan_target(request):
     """Perform network scan on target"""
     try:
@@ -218,7 +217,6 @@ def dashboard_stats(request):
 
 
 @require_http_methods(["POST"])
-@csrf_protect
 def scan_url(request):
     """Scan URL/Domain for DNS information and security issues"""
     try:
@@ -282,7 +280,6 @@ NMAP_PROFILE_LABELS = {
 
 
 @require_http_methods(["POST"])
-@csrf_protect
 def nmap_scan(request):
     """Run nmap scan on target"""
     try:
@@ -385,7 +382,6 @@ SECURITY_HEADERS = {
 
 
 @require_http_methods(["POST"])
-@csrf_protect
 def scan_headers(request):
     """Analyze HTTP security headers of a URL"""
     try:
@@ -492,9 +488,7 @@ def scan_headers(request):
 
 
 @require_http_methods(["POST"])
-@csrf_protect
 @require_http_methods(["POST"])
-@csrf_protect
 def ping_scan(request):
     """Perform ICMP ping on target"""
     try:
@@ -523,7 +517,6 @@ def ping_scan(request):
 
 
 @require_http_methods(["POST"])
-@csrf_protect
 def traceroute_scan(request):
     """Perform traceroute to target"""
     try:
@@ -552,7 +545,6 @@ def traceroute_scan(request):
 
 
 @require_http_methods(["POST"])
-@csrf_protect
 def ssl_scan(request):
     """Analyze SSL/TLS certificate"""
     try:
@@ -589,9 +581,7 @@ def ssl_scan(request):
 
 
 @require_http_methods(["POST"])
-@csrf_protect
 @require_http_methods(["POST"])
-@csrf_protect
 def whois_scan(request):
     """Lookup WHOIS information for domain"""
     try:
@@ -620,7 +610,6 @@ def whois_scan(request):
 
 
 @require_http_methods(["POST"])
-@csrf_protect
 def webpage_scan(request):
     """Analyze webpage content and security"""
     try:
