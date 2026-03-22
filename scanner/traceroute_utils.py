@@ -3,6 +3,8 @@ import platform
 import re
 from typing import Dict, Any, List
 import ipaddress
+import shutil
+import os
 
 
 class TracerouteScanner:
@@ -55,8 +57,18 @@ class TracerouteScanner:
                 cmd = ['tracert', '-h', str(max_hops), '-w', str(timeout * 1000), target]
             else:
                 # Linux: traceroute -m 30 -w 2 target
-                # Mac: traceroute -m 30 -w 2 target
-                cmd = ['traceroute', '-m', str(max_hops), '-w', str(timeout), target]
+                # Find traceroute command with fallback paths
+                traceroute_cmd = shutil.which('traceroute')
+                if not traceroute_cmd and os.path.exists('/usr/bin/traceroute'):
+                    traceroute_cmd = '/usr/bin/traceroute'
+                if not traceroute_cmd and os.path.exists('/usr/sbin/traceroute'):
+                    traceroute_cmd = '/usr/sbin/traceroute'
+                if not traceroute_cmd:
+                    result['success'] = False
+                    result['error'] = 'Traceroute command not found on this system'
+                    return result
+
+                cmd = [traceroute_cmd, '-m', str(max_hops), '-w', str(timeout), target]
 
             # Execute traceroute
             proc = subprocess.run(

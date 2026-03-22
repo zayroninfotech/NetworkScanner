@@ -3,6 +3,8 @@ import platform
 import re
 from typing import Dict, Any
 import ipaddress
+import shutil
+import os
 
 
 class PingScanner:
@@ -54,13 +56,24 @@ class PingScanner:
             return result
 
         try:
+            # Find ping command
+            ping_cmd = shutil.which('ping')
+            if not ping_cmd and os.path.exists('/usr/bin/ping'):
+                ping_cmd = '/usr/bin/ping'
+            if not ping_cmd and os.path.exists('/bin/ping'):
+                ping_cmd = '/bin/ping'
+            if not ping_cmd:
+                result['success'] = False
+                result['error'] = 'Ping command not found on this system'
+                return result
+
             # Platform-specific ping command
             if self.os_type == 'Windows':
                 # Windows: ping -n 4 -w 2000 target
-                cmd = ['ping', '-n', str(count), '-w', str(timeout * 1000), target]
+                cmd = [ping_cmd, '-n', str(count), '-w', str(timeout * 1000), target]
             else:
                 # Linux/Mac: ping -c 4 -W 2 target
-                cmd = ['ping', '-c', str(count), '-W', str(timeout), target]
+                cmd = [ping_cmd, '-c', str(count), '-W', str(timeout), target]
 
             # Execute ping
             proc = subprocess.run(
