@@ -1,7 +1,7 @@
 from django.shortcuts import render
 from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods
-from django.views.decorators.csrf import csrf_protect
+from django.views.decorators.csrf import csrf_exempt
 from django.core.exceptions import ValidationError
 from django.core.validators import URLValidator
 import json
@@ -42,6 +42,7 @@ def index(request):
     return render(request, 'scanner/index.html', context)
 
 
+@csrf_exempt
 @require_http_methods(["POST"])
 def scan_target(request):
     """Perform network scan on target"""
@@ -280,6 +281,7 @@ NMAP_PROFILE_LABELS = {
 }
 
 
+@csrf_exempt
 @require_http_methods(["POST"])
 def nmap_scan(request):
     """Run nmap scan on target"""
@@ -488,7 +490,7 @@ def scan_headers(request):
         return JsonResponse({'success': False, 'error': f'Scan failed: {str(e)}'}, status=500)
 
 
-@require_http_methods(["POST"])
+@csrf_exempt
 @require_http_methods(["POST"])
 def ping_scan(request):
     """Perform ICMP ping on target"""
@@ -517,6 +519,7 @@ def ping_scan(request):
         return JsonResponse({'success': False, 'error': f'Scan failed: {str(e)}'}, status=500)
 
 
+@csrf_exempt
 @require_http_methods(["POST"])
 def traceroute_scan(request):
     """Perform traceroute to target"""
@@ -545,6 +548,7 @@ def traceroute_scan(request):
         return JsonResponse({'success': False, 'error': f'Scan failed: {str(e)}'}, status=500)
 
 
+@csrf_exempt
 @require_http_methods(["POST"])
 def ssl_scan(request):
     """Analyze SSL/TLS certificate"""
@@ -581,7 +585,7 @@ def ssl_scan(request):
         return JsonResponse({'success': False, 'error': f'Scan failed: {str(e)}'}, status=500)
 
 
-@require_http_methods(["POST"])
+@csrf_exempt
 @require_http_methods(["POST"])
 def whois_scan(request):
     """Lookup WHOIS information for domain"""
@@ -610,6 +614,7 @@ def whois_scan(request):
         return JsonResponse({'success': False, 'error': f'Scan failed: {str(e)}'}, status=500)
 
 
+@csrf_exempt
 @require_http_methods(["POST"])
 def webpage_scan(request):
     """Analyze webpage content and security"""
