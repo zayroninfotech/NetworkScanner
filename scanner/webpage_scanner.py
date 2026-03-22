@@ -59,7 +59,7 @@ class WebpageScanner:
             response = requests.get(
                 url,
                 timeout=10,
-                headers={'User-Agent': 'NetSentinel/1.0 WebpageScanner'},
+                headers={'User-Agent': 'ZayroSentinel/1.0 WebpageScanner'},
                 allow_redirects=True,
                 verify=False
             )
