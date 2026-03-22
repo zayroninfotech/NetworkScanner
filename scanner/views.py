@@ -9,6 +9,7 @@ import logging
 import subprocess
 import shutil
 import time
+import os
 import requests as http_requests
 
 from .scanner_utils import NetworkScanner
