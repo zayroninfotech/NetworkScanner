@@ -2829,5 +2829,62 @@
             document.getElementById('webpageError').classList.add('active');
         }
     </script>
+
+    <!-- Footer -->
+    <footer class="app-footer">
+        <div class="footer-content">
+            <p>&copy; 2026 <strong>Zayro Sentinel</strong> V1.0 | Advanced Network Security Scanner by Zayron Infotech</p>
+        </div>
+    </footer>
+
+    <style>
+        /* Footer Styles */
+        .app-footer {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: #1a252f;
+            border-top: 1px solid #34495e;
+            padding: 12px 20px;
+            text-align: center;
+            font-size: 0.85em;
+            color: #bdc3c7;
+            z-index: 999;
+            margin-left: 280px;
+        }
+
+        .footer-content {
+            max-width: 100%;
+            margin: 0 auto;
+        }
+
+        .footer-content p {
+            margin: 0;
+            color: #bdc3c7;
+        }
+
+        .footer-content strong {
+            color: #D4A574;
+        }
+
+        /* Adjust main content to accommodate footer */
+        .main-wrapper {
+            margin-bottom: 60px;
+        }
+
+        /* Mobile responsiveness for footer */
+        @media (max-width: 768px) {
+            .app-footer {
+                margin-left: 0;
+                padding: 10px 15px;
+                font-size: 0.75em;
+            }
+
+            .main-wrapper {
+                margin-bottom: 70px;
+            }
+        }
+    </style>
 </body>
 </html>
