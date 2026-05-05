@@ -9,7 +9,6 @@ class ScanResultAdmin(admin.ModelAdmin):
     search_fields = ('target', 'target_ip')
     readonly_fields = ('created_at', 'updated_at')
     date_hierarchy = 'created_at'
-
     fieldsets = (
         ('Target Information', {
             'fields': ('target', 'target_ip', 'is_private')
